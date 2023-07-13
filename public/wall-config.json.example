@@ -1,0 +1,9 @@
+{
+    "server": "mastodon.social",
+    "tags": ["foss", "cats", "dogs"],
+    "accounts": [],
+    "limit": 20,
+    "interval": 10,
+    "theme": "light",
+    "info": "top"
+}
