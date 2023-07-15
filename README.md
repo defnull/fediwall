@@ -18,6 +18,11 @@ Fediwall is a *media wall* application made for [Mastodon](https://joinmastodon.
 
 There is a [public demo site](https://live.gwdg.de/wall/?theme=dark&server=mastodon.social&tags=foss,cats,dogs&accounts=defnull&info=top) you can start playing with. <!-- Todo: Deploy to github pages and change the link -->
 
+
+## Screenshot (dark/light theme)
+
+![screenshot](https://github.com/defnull/fediwall/assets/62740/d838dfa7-b200-42f5-8130-9506da7dba0f)
+
 ## How to build and host your own
 
 Checkout this repository, run `npm install` once, then `npm run build` and copy the content of the `./dist/` folder to a web server of your choice. If you want to run Fediwall under a certain path instead of the web server root, specify the `--base` build option and all paths will be rewritten accordingly (e.g. `npm run build -- --base=/wall/` to serve it as `https://example.com/wall/`).
