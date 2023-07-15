@@ -16,7 +16,7 @@ Fediwall is a *media wall* application made for [Mastodon](https://joinmastodon.
 
 ## Try it out
 
-There is a [public demo site](https://live.gwdg.de/wall/?theme=dark&server=mastodon.social&tags=foss,cats,dogs&accounts=defnull&info=top) you can start playing with. <!-- Todo: Deploy to github pages and change the link -->
+There is a [public demo site](https://defnull.github.io/fediwall/) you can start playing with.
 
 
 ## Screenshot (dark/light theme)
