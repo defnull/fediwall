@@ -260,7 +260,7 @@ const privacyLink = computed(() => {
     <header v-if="config?.info === 'top'" class="secret-hover">
       This wall shows <a :href="aboutLink" target="_blank" class="">{{ config.server }}</a> posts
       <template v-if="config.accounts.length">by
-        <a v-for="a in config.accounts" class="me-1" :href="`https://${config.server}/@${encodeURIComponent(a)}`">@{{
+        <a v-for="a in config.accounts" class="me-1" :href="`https://${config.server}/@${encodeURIComponent(a).replace('%40','@')}`">@{{
           a }}</a>
       </template>
       <template v-if="config.accounts.length && config?.tags.length"> or </template>
