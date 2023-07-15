@@ -278,8 +278,7 @@ const privacyLink = computed(() => {
     <main>
       <div v-if="filteredPosts.length === 0 && updateInProgress">Loading first posts ...</div>
       <div v-else-if="filteredPosts.length === 0">Nothing there yet ...</div>
-      <div v-else v-masonry transition-duration="1s" item-selector=".wall-item" stamp=".stamp" percent-position="true"
-        fit-width="true" id="wall">
+      <div v-else v-masonry transition-duration="1s" item-selector=".wall-item" percent-position="true" id="wall">
         <Card v-masonry-tile class="wall-item secret-hover" v-for="(post, index) in filteredPosts" :key="post.id"
           :post="post">
           <template v-slot:topleft>
@@ -330,7 +329,7 @@ body {
 }
 
 #page main {
-  padding: 1rem 1rem;
+  padding: 1rem 2rem;
 }
 
 .secret-hover .secret {
@@ -361,16 +360,58 @@ body {
 }
 
 .wall-item {
-  width: 100%;
-  max-width: 25rem;
+  width: 10%;
 }
 
-@media (max-width: 40rem) {
-
+@media (max-width: 180rem) {
   .wall-item {
-    width: 100%;
-    max-width: 100%;
+    width: 12.5%;
   }
 }
 
+@media (max-width: 160rem) {
+  .wall-item {
+    width: 14.7%;
+  }
+}
+
+@media (max-width: 140rem) {
+  .wall-item {
+    width: 16.6%;
+  }
+}
+
+@media (max-width: 120rem) {
+  .wall-item {
+    width: 20%;
+  }
+}
+
+@media (max-width: 100rem) {
+  .wall-item {
+    width: 25%;
+  }
+}
+
+@media (max-width: 80rem) {
+  .wall-item {
+    width: 33%;
+  }
+}
+
+@media (max-width: 60rem) {
+  #page main {
+    padding: 1rem .5rem;
+  }
+
+  .wall-item {
+    width: 50%;
+  }
+}
+
+@media (max-width: 40rem) {
+  .wall-item {
+    width: 100%;
+  }
+}
 </style>
