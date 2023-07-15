@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, onMounted, onUpdated, ref, watch, watchEffect } from 'vue';
-import Card, {type Post} from './components/Card.vue';
+import Card, { type Post } from './components/Card.vue';
 import { useWindowSize, watchDebounced } from '@vueuse/core'
 import ConfigModal from './components/ConfigModal.vue';
 import { loadConfig, type Config } from './config';
@@ -260,8 +260,9 @@ const privacyLink = computed(() => {
     <header v-if="config?.info === 'top'" class="secret-hover">
       This wall shows <a :href="aboutLink" target="_blank" class="">{{ config.server }}</a> posts
       <template v-if="config.accounts.length">by
-        <a v-for="a in config.accounts" class="me-1" :href="`https://${config.server}/@${encodeURIComponent(a).replace('%40','@')}`">@{{
-          a }}</a>
+        <a v-for="a in config.accounts" class="me-1"
+          :href="`https://${config.server}/@${encodeURIComponent(a).replace('%40', '@')}`">@{{
+            a }}</a>
       </template>
       <template v-if="config.accounts.length && config?.tags.length"> or </template>
       <template v-if="config.tags.length">tagged with
@@ -329,7 +330,7 @@ body {
 }
 
 #page main {
-  padding: 1rem 2rem;
+  padding: 1rem 1rem;
 }
 
 .secret-hover .secret {
@@ -360,5 +361,16 @@ body {
 }
 
 .wall-item {
-  width: 25rem;
-}</style>
+  width: 100%;
+  max-width: 25rem;
+}
+
+@media (max-width: 40rem) {
+
+  .wall-item {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+</style>
