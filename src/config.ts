@@ -38,7 +38,7 @@ export function toQuery(config: Config): string {
     if (config.theme !== defaults.theme) params.set("theme", config.theme)
     if (config.info !== defaults.info) params.set("info", config.info)
     if (config.server !== defaults.server) params.set("server", config.server)
-    return params.toString().replace(/%2C/g, ',')
+    return params.toString().replace(/%2C/g, ',').replace(/%40/g, '@')
 }
 
 function isTag(tag: string) {
