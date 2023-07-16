@@ -27,9 +27,10 @@ const formTags = computed({
   set: (value) => config.value.tags = (value || "").replace(/[^a-z0-9]+/ig, " ").split(" ").filter(t => t.length),
 });
 
+const accountPattern = /\b([A-Z0-9._%+-]+)(@([A-Z0-9.-]+\.[A-Z]{2,}))?\b/ig;
 const formAccounts = computed({
   get: () => config.value.accounts.map(t => "@" + t).join(" "),
-  set: (value) => config.value.accounts = (value || "").replace(/[^a-z0-9]+/ig, " ").split(" ").filter(t => t.length),
+  set: (value) => config.value.accounts = [...(value || "").matchAll(accountPattern)].map(m => m[0]).filter(t => t.length),
 });
 
 const formLimit = computed({
@@ -44,7 +45,7 @@ const formInterval = computed({
 
 const formInfo = computed({
   get: () => config.value.info,
-  set: (value) => config.value.info = value === "top" ? "top" : "hidden",
+  set: (value) => config.value.info = value === "top" ? "top" : "hide",
 });
 
 
