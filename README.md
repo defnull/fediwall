@@ -5,7 +5,7 @@ Fediwall is a *media wall* application made for [Mastodon](https://joinmastodon.
 
 ## Features
 
-* **Follow hashtags or accounts** and display all public posts (including boosts) matching your interest.
+* **Follow hashtags or accounts** on multiple servers and display all public posts (including boosts) matching your interest.
 * **Visually pleasing** and screen filling masonry grid layout  that scales well with all types of screens, from tablet to large screens or LED walls at venues.
 * **Dark mode** for less eye stain and lower energy consumption.
 * **Find new posts** quickly and watch them appear with a smooth animation. The update logic gracefully handles Mastodon server rate limits.
@@ -23,6 +23,7 @@ There is a [public demo site](https://defnull.github.io/fediwall/) you can start
 
 ![screenshot](https://github.com/defnull/fediwall/assets/62740/d838dfa7-b200-42f5-8130-9506da7dba0f)
 
+
 ## How to build and host your own
 
 Checkout this repository, run `npm install` once, then `npm run build` and copy the content of the `./dist/` folder to a web server of your choice. If you want to run Fediwall under a certain path instead of the web server root, specify the `--base` build option and all paths will be rewritten accordingly (e.g. `npm run build -- --base=/wall/` to serve it as `https://example.com/wall/`).
@@ -38,6 +39,31 @@ All config values can also be defined or changed via URL query parameters. The e
 ## Development
 
 Checkout this repository, run `npm install` once, then `npm run dev` and start coding.
+
+
+## F.A.Q.
+
+### Some posts do not show up. Why?
+
+This can have multiple reasons:
+
+* Fediwall can only find posts that are known to the configured source instances. If you post on a different instance, make sure someone from a source instance follows you or boosts your post.
+* Fediwall by default only shows public posts and hides replies, sensitive content or anything with limited visibility. Posts from suspended or limited accounts are also filtered out.
+* If all posts from a specific instance are missing, the instance may be down, unresponsive, defederated, or deliberately block anonymous API access.
+
+
+### It's called Fediwall, but only supports Mastodon. What about X?
+
+Fediwall currently relies on a small subset of the Mastodon v1 API to fetch content, which is also implemented by many Mastodon alternatives. Support for other source APIs (e.g. Pixelfed) is planned, but this may take a while. Pull requests are welcomed, though!
+
+Direct API access is not always necessary. Federated content shows up on Fediwall no matter on which server or platform they were originally posted.
+
+
+### I want to use Fediwall for my next big event. How do I prevent spam or inappropriate content?
+
+Choose a server with active moderation to reduce the risk of troll-, spam-, or nsfw-posts showing up. If you see something you do not want, you can manually hide individual posts or entire account in the UI. 
+
+To play it save, stop following hashtags and follow a bunch of trusted event accounts instead. Those accounts would then manually boost posts and only allow approved content to show up on the wall.
 
 
 ## Special thanks
