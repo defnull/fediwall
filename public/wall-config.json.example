@@ -1,5 +1,5 @@
 {
-    "server": "mastodon.social",
+    "servers": ["mastodon.social"],
     "tags": ["foss", "cats", "dogs"],
     "accounts": [],
     "limit": 20,

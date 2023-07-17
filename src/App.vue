@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, onUpdated, ref, watch, watchEffect } from 'vue';
+import { computed, inject, onBeforeUnmount, onMounted, onUpdated, ref, watch } from 'vue';
 import Card, { type Post } from './components/Card.vue';
 import { useWindowSize, watchDebounced } from '@vueuse/core'
 import ConfigModal from './components/ConfigModal.vue';
 import { loadConfig, type Config } from './config';
+import InfoBar from './components/InfoBar.vue';
 
 const config = ref<Config>();
 
@@ -12,10 +13,9 @@ const pinned = ref<Array<string>>([])
 const hidden = ref<Array<string>>([])
 const banned = ref<Array<string>>([])
 const updateInProgress = ref(false)
-const lastError = ref<string>()
 
 var updateIntervalHandle: number;
-const userToId: Record<string, string> = {}
+const accountToLocalId: Record<string, string | null> = {}
 
 onMounted(async () => {
   config.value = await loadConfig()
@@ -54,6 +54,56 @@ watch(() => config.value?.interval, () => {
   }, interval * 1000)
 })
 
+// Souces grouped by server
+type SourceConfig = {
+  domain: string,
+  tags: string[],
+  accounts: string[],
+}
+
+// Source configurations grouped by server domain
+const groupedSources = computed<Array<SourceConfig>>(() => {
+  const cfg = config.value
+  if (!cfg) return [];
+
+  const sources: Record<string, SourceConfig> = {}
+
+  const forServer = (domain: string) => {
+    if (!sources.hasOwnProperty(domain))
+      sources[domain] = { domain, tags: [], accounts: [] }
+    return sources[domain]
+  }
+
+  // Tags are searched on all servers
+  cfg.servers.forEach(domain => {
+    const source = forServer(domain)
+    source.tags = [...cfg.tags]
+  })
+
+  // Accounts are searched on the server they belong to.
+  // Non-qualified accounts are searched on all servers.
+  cfg.accounts.forEach(account => {
+    var [user, domain] = account.split('@', 2)
+    if (domain) {
+      forServer(domain).accounts.push(user)
+    } else {
+      cfg.servers.forEach(domain => {
+        forServer(domain).accounts.push(user)
+      })
+    }
+  })
+
+  return Object.values(sources).map(src => {
+    src.accounts = src.accounts.sort().filter((v, i, a) => a.indexOf(v) == i)
+    src.tags = src.tags.sort().filter((v, i, a) => a.indexOf(v) == i)
+    return src
+  });
+})
+
+/**
+ * Fetch a json resources from a given URL.
+ * Automaticaly detect mastodon rate limits and wait and retry up to 3 times.
+ */
 async function fetchJson(url: string) {
   var rs = await fetch(url)
 
@@ -79,95 +129,141 @@ async function fetchJson(url: string) {
   const json = await rs.json()
   if (json.error) {
     console.warn(`Fetch error: ${rs.status} ${JSON.stringify(json)}`)
-    throw new Error(json.error)
+    const err = new Error(json.error);
+    (err as any).status = rs.status;
+    throw err;
   }
   return json
 }
 
-async function getUserId(name: string) {
-  const cfg = config.value
-  if (!cfg) return
+/**
+ * Returns the instance-local account ID for a given user name.
+ * Results are cached. Returns null if not found, or undefined on errors.
+ */
+async function getLocalUserId(user: string, domain: string) {
+  const key = `${user}@${domain}`
 
-  if (!userToId.hasOwnProperty(name)) {
+  if (!accountToLocalId.hasOwnProperty(key)) {
     try {
-      userToId[name] = (await fetchJson(`https://${cfg.server}/api/v1/accounts/lookup?acct=${encodeURIComponent(name)}`)).id
+      accountToLocalId[key] = (await fetchJson(`https://${domain}/api/v1/accounts/lookup?acct=${encodeURIComponent(user)}`)).id
     } catch (e) {
-      console.warn(`Failed to fetch id for user ${name}`)
+      if ((e as any).status === 404)
+        accountToLocalId[key] = null;
     }
   }
-  return userToId[name]
+  return accountToLocalId[key]
 }
 
-const filterStatus = (post: any) => {
+/**
+ * Check if a mastodon status document should be accepted
+ */
+const filterStatus = (status: any) => {
+  if (status.reblog)
+    status = status.reblog
+
   // Filter sensitive posts (TODO: Allow if configured)
-  if (post?.sensitive) return false;
+  if (status?.sensitive) return false;
   // Filter replies (TODO: Allow if configured)
-  if (post?.in_reply_to_id) return false;
+  if (status?.in_reply_to_id) return false;
   // Filter non-public posts
-  if (post?.visibility !== "public") return false;
+  if (status?.visibility !== "public") return false;
   // Filter bad actors
-  if (post?.account?.suspended) return false;
-  if (post?.account?.limted) return false;
-  // Filter bots
+  if (status?.account?.suspended) return false;
+  if (status?.account?.limted) return false;
+  // TODO: Filter bots?
   //if(post?.account?.bot) return false;
   // Accept anything else
   return true;
 }
 
-const statusToWallPost = (post: any): Post => {
-  var date = post.created_at
-  if (post.reblog)
-    post = post.reblog
+/**
+ * Convert a mastdon status object to a Post.
+ */
+const statusToWallPost = (status: any): Post => {
+  var date = status.created_at
+
+  if (status.reblog)
+    status = status.reblog
 
   var media;
-  const image = post.media_attachments?.find((m: any) => m.type == "image")
+  const image = status.media_attachments?.find((m: any) => m.type == "image")
   if (image)
     media = image.url
 
   return {
-    id: post.id,
-    url: post.url,
+    id: status.id,
+    url: status.url,
     author: {
-      name: post.account.display_name || post.account.username,
-      url: post.account.url,
-      avatar: post.account.avatar,
+      name: status.account.display_name || status.account.username,
+      url: status.account.url,
+      avatar: status.account.avatar,
     },
-    content: post.content,
+    content: status.content,
     date,
     media,
   }
 }
 
-async function fetchPosts() {
+/**
+ * Fetch all new statuses from a given source.
+ */
+const fetchSource = async (source: SourceConfig) => {
   const cfg = config.value
   if (!cfg) return []
+  const posts = []
 
-  const posts: Array<Post> = [];
+  for (const tag of source.tags) {
+    const items = await fetchJson(`https://${source.domain}/api/v1/timelines/tag/${encodeURIComponent(tag)}?limit=${cfg.limit}`)
+    posts.push(...items)
+  }
+
+  for (let account of source.accounts) {
+    const localUserId = await getLocalUserId(account, source.domain)
+    if (!localUserId) continue;
+    const items = await fetchJson(`https://${source.domain}/api/v1/accounts/${encodeURIComponent(localUserId)}/statuses?limit=${cfg.limit}&exclude_replies=True`)
+    posts.push(...items)
+  }
+
+  return posts
+}
+
+/**
+ * Fetch Posts from all sources.
+ */
+async function fetchAllPosts() {
+  const cfg = config.value
+  if (!cfg) return []
+  const posts: Post[] = []
 
   const addOrReplace = (post?: Post) => {
     if (!post) return
-    const i = posts.findIndex(p => p.id === post.id)
+    const i = posts.findIndex(p => p.url === post.url)
     if (i >= 0)
       posts[i] = post
     else
       posts.unshift(post)
   }
 
-  for (var tag of cfg.tags) {
-    const items = await fetchJson(`https://${cfg.server}/api/v1/timelines/tag/${encodeURIComponent(tag)}?limit=${cfg.limit}`) as any[];
-    items.filter(filterStatus).map(statusToWallPost).forEach(addOrReplace);
+  // Start all sources in parallel
+  const tasks = groupedSources.value.map(source => fetchSource(source));
+  const results = await Promise.allSettled(tasks);
+
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      result.value.filter(filterStatus).map(statusToWallPost).forEach(addOrReplace)
+    } else {
+      const err = result.reason;
+    }
   }
 
-  for (var user of cfg.accounts) {
-    const userId = await getUserId(user)
-    if (!userId) continue;
-    const items = await fetchJson(`https://${cfg.server}/api/v1/accounts/${encodeURIComponent(userId)}/statuses?limit=${cfg.limit}&exclude_replies=True`) as any[];
-    items.filter(filterStatus).map(statusToWallPost).forEach(addOrReplace);
-  }
-
-  return posts;
+  return posts
 }
 
+/**
+ * Trigger a wall update.
+ * 
+ * Does nothing if there is an update running already.
+ */
 async function updateWall() {
   const cfg = config.value
   if (!cfg) return
@@ -180,12 +276,10 @@ async function updateWall() {
   console.debug("Startung wall update...")
   updateInProgress.value = true
   try {
-    allPosts.value = await fetchPosts()
-    lastError.value = undefined
+    allPosts.value = await fetchAllPosts()
     console.debug("Update completed")
   } catch (e) {
     console.warn("Update failed", e)
-    lastError.value = (e as Error).toString()
   } finally {
     updateInProgress.value = false;
   }
@@ -241,14 +335,14 @@ const toggleTheme = () => {
 }
 
 const aboutLink = computed(() => {
-  if (config.value?.server.length)
-    return `https://${config.value.server}/about`
+  if (config.value?.servers.length)
+    return `https://${config.value.servers[0]}/about`
   return "#"
 })
 
 const privacyLink = computed(() => {
-  if (config.value?.server.length)
-    return `https://${config.value.server}/privacy-policy`
+  if (config.value?.servers.length)
+    return `https://${config.value.servers[0]}/privacy-policy`
   return "#"
 })
 
@@ -257,22 +351,12 @@ const privacyLink = computed(() => {
 <template>
   <div id="page">
     <span v-show="updateInProgress" class="position-fixed bottom-0 start-0 m-1 opacity-25 text-muted">♥</span>
-    <header v-if="config?.info === 'top'" class="secret-hover">
-      This wall shows <a :href="aboutLink" target="_blank" class="">{{ config.server }}</a> posts
-      <template v-if="config.accounts.length">by
-        <a v-for="a in config.accounts" class="me-1"
-          :href="`https://${config.server}/@${encodeURIComponent(a).replace('%40', '@')}`">@{{
-            a }}</a>
-      </template>
-      <template v-if="config.accounts.length && config?.tags.length"> or </template>
-      <template v-if="config.tags.length">tagged with
-        <a v-for="t in config.tags" class="me-1" :href="`https://${config.server}/tags/${encodeURIComponent(t)}`">#{{
-          t }}</a>
-      </template>
-      <small class="text-secondary secret">
-        [<a href="#" class="text-secondary" @click.prevent="config.info = 'hide'">hide</a> -
-        <a href="#" class="text-secondary" data-bs-toggle="modal" data-bs-target="#configModal">edit</a>]
-      </small>
+    <header v-if="config?.info === 'top'">
+      <InfoBar :config="config" class="secret-hover">
+        <small class="text-secondary secret float-end">
+          [<a href="#" class="text-secondary" data-bs-toggle="modal" data-bs-target="#configModal">edit</a>]
+        </small>
+      </InfoBar>
     </header>
 
     <main>
@@ -283,7 +367,7 @@ const privacyLink = computed(() => {
           :post="post">
           <template v-slot:topleft>
             <div class="dropdown secret">
-              <button class="btn btn-outline-secondary" type="button" data-bs-toggle="dropdown"
+              <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown"
                 aria-expanded="false">...</button>
               <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="#" @click.prevent="pin(post.id)">{{ post.pinned ? "Unpin" : "Pin"
@@ -302,9 +386,8 @@ const privacyLink = computed(() => {
     <ConfigModal v-if="config" v-model="config" id="configModal" />
 
     <footer>
-      <button class="btn btn-link text-muted" @click="toggleTheme(); false">[{{ config?.theme == "dark" ? "Light" :
-        "Dark" }} mode]</button>
-      <button class="btn btn-link text-muted" data-bs-toggle="modal" data-bs-target="#configModal">[configure]</button>
+      <button class="btn btn-link text-muted" @click="toggleTheme(); false">[{{ config?.theme == "dark" ? "Light" : "Dark" }} mode]</button>
+      <button class="btn btn-link text-muted" data-bs-toggle="modal" data-bs-target="#configModal">[Customize]</button>
       <div>
         <a :href="privacyLink" target="_blank" class="mx-1">Privacy policy</a>
         - <a href="https://github.com/defnull/fediwall" target="_blank" class="mx-1">Github</a>
@@ -329,7 +412,7 @@ body {
 }
 
 #page main {
-  padding: 1rem 2rem;
+  margin: 1rem 2rem;
 }
 
 .secret-hover .secret {
@@ -346,6 +429,7 @@ body {
   display: block;
   width: 100%;
   text-align: center;
+  background-color: var(--bs-light-bg-subtle);
 }
 
 #page footer {

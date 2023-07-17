@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { sanatizeConfig } from '@/config';
+import { isServer } from '@/config';
 import { toQuery, type Config } from '@/config';
 import { computed, ref } from 'vue';
 
@@ -17,20 +18,21 @@ const config = computed({
   set: (value) => emit('update:modelValue', sanatizeConfig(value)),
 });
 
-const serverValue = computed({
-  get: () => config.value.server || "",
-  set: (value) => config.value.server = value.replace(/(^.*\/\/|[^a-z0-9.-]+)/i, ""),
+const formServers = computed({
+  get: () => config.value.servers.join(" "),
+  set: (value) => config.value.servers = (value || "").split(" ").filter(isServer),
 });
 
+const tagPattern = /\b([\p{Letter}\p{Number}\p{Mark}\p{Connector_Punctuation}_]+)\b/igu
 const formTags = computed({
   get: () => config.value.tags.map(t => "#" + t).join(" "),
-  set: (value) => config.value.tags = (value || "").replace(/[^a-z0-9]+/ig, " ").split(" ").filter(t => t.length),
+  set: (value) => config.value.tags = [...(value || "").matchAll(tagPattern)].map(m => m[0]),
 });
 
-const accountPattern = /\b([A-Z0-9._%+-]+)(@([A-Z0-9.-]+\.[A-Z]{2,}))?\b/ig;
+const accountPattern = /\b([a-z0-9_]+)(@([a-z0-9.-]+\.[a-z]{2,}))?\b/ig;
 const formAccounts = computed({
   get: () => config.value.accounts.map(t => "@" + t).join(" "),
-  set: (value) => config.value.accounts = [...(value || "").matchAll(accountPattern)].map(m => m[0]).filter(t => t.length),
+  set: (value) => config.value.accounts = [...(value || "").matchAll(accountPattern)].map(m => m[0]),
 });
 
 const formLimit = computed({
@@ -76,8 +78,8 @@ const onSubmit = () => {
             <div class="mb-3 row">
               <label for="edit-server" class="col-sm-2 col-form-label">Server</label>
               <div class="col-sm-10">
-                <input type="text" class="form-control" id="edit-server" v-model="serverValue">
-                <div class="form-text">Mastodon (or compatible) server domain.</div>
+                <input type="text" class="form-control" id="edit-server" v-model.lazy="formServers">
+                <div class="form-text">Mastodon (or compatible) server domains.</div>
               </div>
             </div>
 
@@ -85,7 +87,7 @@ const onSubmit = () => {
               <label for="edit-tags" class="col-sm-2 col-form-label">Hashtags</label>
               <div class="col-sm-10">
                 <input type="text" class="form-control" id="edit-tags" v-model.lazy="formTags">
-                <div class="form-text">Hashtags to follow.</div>
+                <div class="form-text">Hashtags to follow on each server.</div>
               </div>
             </div>
 

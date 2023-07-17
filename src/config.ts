@@ -1,89 +1,112 @@
 
-import { arrayEquals } from "./utils";
-import {fallbackConfig, siteConfigUrl} from "@/defaults";
+import { arrayEquals, deepClone, isString } from "./utils";
+import { fallbackConfig, siteConfigUrl } from "@/defaults";
 
 export type Config = {
-    server: string,
+    servers: Array<string>,
     tags: Array<string>,
     accounts: Array<string>,
     limit: number,
     interval: number,
-    theme: string | "dark" | "light",
-    info: string | "top" | "hide"
+    theme: string,
+    info: string,
 }
 
-var siteConfig: Config | undefined | false;
+var siteConfig: Config = null;
 
-export function fromQuery(query: string): Partial<Config> {
+const themes = ["dark", "light"] as const;
+const infoLineModes = ["top", "hide"] as const;
+
+const choice = <T>(choices: readonly T[], value?: T, fallback?: T): T => {
+    return choices.includes(value) ? value : fallback;
+}
+
+export function fromQuery(query: string): Config {
     const params = new URLSearchParams(query);
-    return {
-        server: params.get("server") || undefined,
-        tags: params.get("tags")?.split(",").filter(a => a.replace(/(^#|\s+)/ig, "")) || undefined,
-        accounts: params.get("accounts")?.split(",").filter(a => a.replace(/(^@|\s+)/ig, "")) || undefined,
-        limit: parseInt(params.get("limit") || "0") || undefined,
-        interval: parseInt(params.get("interval") || "0") || undefined,
-        theme: params.get("theme") || undefined,
-        info: params.get("info") || undefined,
-    }
+    const config: Partial<Config> = {}
+    // Keep URLs backwards compatible
+    if (params.has("server"))
+        params.set("servers", params.get("server"))
+    // Parse URL parameters very roughly
+    config.servers = params.get("servers")?.split(",")
+    config.tags = params.get("tags")?.split(",")
+    config.accounts = params.get("accounts")?.split(",")
+    config.limit = parseInt(params.get("limit") || "0")
+    config.interval = parseInt(params.get("interval") || "0")
+    config.theme = params.get("theme")
+    config.info = params.get("info")
+    // Clean, fix and return a valid config
+    return sanatizeConfig(config);
 }
 
 export function toQuery(config: Config): string {
     const params = new URLSearchParams();
     const defaults = siteConfig || fallbackConfig;
-    if (config.server !== defaults.server) params.set("server", config.server)
-    if (!arrayEquals(config.tags, defaults.tags)) params.set("tags", config.tags.join(","))
-    if (!arrayEquals(config.accounts, defaults.accounts)) params.set("accounts", config.accounts.join(","))
-    if (config.limit !== defaults.limit) params.set("limit", config.limit.toString())
-    if (config.interval !== defaults.interval) params.set("interval", config.interval.toString())
-    if (config.theme !== defaults.theme) params.set("theme", config.theme)
-    if (config.info !== defaults.info) params.set("info", config.info)
-    if (config.server !== defaults.server) params.set("server", config.server)
+    if (!arrayEquals(config.servers, defaults.servers))
+        params.set("servers", config.servers.join(","))
+    if (!arrayEquals(config.tags, defaults.tags))
+        params.set("tags", config.tags.join(","))
+    if (!arrayEquals(config.accounts, defaults.accounts))
+        params.set("accounts", config.accounts.join(","))
+    if (config.limit !== defaults.limit)
+        params.set("limit", config.limit.toString())
+    if (config.interval !== defaults.interval)
+        params.set("interval", config.interval.toString())
+    if (config.theme !== defaults.theme)
+        params.set("theme", config.theme)
+    if (config.info !== defaults.info)
+        params.set("info", config.info)
     return params.toString().replace(/%2C/g, ',').replace(/%40/g, '@')
 }
 
-function isTag(tag: string) {
-    return tag.match(/^[a-z0-9]+$/i)
+export function isTag(tag: string) {
+    return isString(tag) && tag.match(/^[\p{Letter}\p{Number}\p{Mark}\p{Connector_Punctuation}_]+$/iu)
 }
 
-function isAccount(acc: string) {
-    return acc.match(/^\b([A-Z0-9._%+-]+)(@([A-Z0-9.-]+\.[A-Z]{2,}))?\b$/i)
+export function isAccount(acc: string) {
+    return isString(acc) && acc.match(/^([a-z0-9_]+)(@([a-z0-9.-]+\.[a-z]{2,}))?$/i)
 }
 
-export function sanatizeConfig(config: Partial<Config>): Config {
-    const defaults = (siteConfig || fallbackConfig)
-    return {
-        server: config.server?.replace(/(.*\/|[^a-z0-9.-]+)/i, '') || defaults.server,
-        tags: Array.isArray(config.tags) ? [...config.tags].filter(isTag).sort() : [],
-        accounts: Array.isArray(config.accounts) ? [...config.accounts].filter(isAccount).sort() : [],
-        limit: Math.max(1, Math.min(100, config?.limit || 0)),
-        interval: Math.max(1, Math.min(600, config?.interval || 0)),
-        theme: config.theme?.replace(/[^a-z]+/i, '') || defaults.theme,
-        info: config.info?.replace(/[^a-z]+/i, '') || defaults.info,
+export function isServer(server: string) {
+    return isString(server) && server.match(/^([a-z0-9.-]+\.[a-z]{2,})$/i)
+}
+
+export function sanatizeConfig(config: any): Config {
+
+    // Migrate old configuration within same minor release
+    if (isString(config.server) && !config.servers) {
+        console.warn("DEPRECATED: Config parameter 'server' is now an array and called 'servers'.")
+        config.servers = [config.server]
     }
+
+    const defaults = siteConfig ? siteConfig : fallbackConfig;
+    const result: Partial<Config> = {}
+
+    result.servers = Array.isArray(config.servers) ? [...config.servers].filter(isServer).sort() : [...defaults.servers];
+    result.tags = Array.isArray(config.tags) ? [...config.tags].filter(isTag).sort() : [...defaults.tags]
+    result.accounts = Array.isArray(config.accounts) ? [...config.accounts].filter(isAccount).sort() : [...defaults.accounts]
+    result.limit = Math.max(1, Math.min(100, config?.limit || defaults.limit))
+    result.interval = Math.max(1, Math.min(600, config?.interval || defaults.interval))
+    result.theme = choice(themes, config.theme, defaults.theme)
+    result.info = choice(infoLineModes, config.info, defaults.info)
+
+    return result as Config;
 }
 
 export async function loadConfig() {
-    if (siteConfig === undefined && siteConfigUrl) {
+    if (siteConfig === null && siteConfigUrl) {
         try {
             siteConfig = sanatizeConfig(await (await fetch(siteConfigUrl)).json() || {})
         } catch (e) {
-            siteConfig = false
             console.warn("Site config failed to load, falling back to hard-coded defaults!")
         }
     }
 
-    const config: Partial<Config> = {... (siteConfig || fallbackConfig)};
+    if (siteConfig === null)
+        siteConfig = sanatizeConfig(deepClone(fallbackConfig))
 
-    // Merge url parameters into site config, if present
-    if (window.location.search) {
-        const urlConfig = fromQuery(window.location.search.toString())
-        for (const key in urlConfig) {
-            // TODO: Fighting typescript here :/ I'm sure there is a better way
-            const value = (urlConfig as any)[key];
-            if (value !== undefined)
-                (config as any)[key] = value
-        }
-    }
+    if (window.location.search)
+        return fromQuery(window.location.search)
 
-    return sanatizeConfig(config);
+    return deepClone({ ... (siteConfig || fallbackConfig) })
 }
