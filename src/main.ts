@@ -28,5 +28,10 @@ import VueDOMPurifyHTML from 'vue-dompurify-html';
 
 const app = createApp(App)
 app.use(VueMasonryPlugin)
-app.use(VueDOMPurifyHTML)
+app.use(VueDOMPurifyHTML, {
+    defaults: {
+        FORBID_TAGS: ['style'],
+        FORBID_ATTR: ['style']
+    }
+})
 app.mount('#app')
