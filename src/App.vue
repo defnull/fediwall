@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, onMounted, onUpdated, ref, watch } from 'vue';
 import Card, { type Post } from './components/Card.vue';
-import { useDocumentVisibility, useWindowSize, watchDebounced } from '@vueuse/core'
+import { useDocumentVisibility, usePreferredDark, useWindowSize, watchDebounced } from '@vueuse/core'
 import ConfigModal from './components/ConfigModal.vue';
 import { loadConfig, type Config } from './config';
 import InfoBar from './components/InfoBar.vue';
@@ -36,8 +36,15 @@ const windowSize = useWindowSize()
 watchDebounced(windowSize.width, () => { fixLayout() }, { debounce: 500, maxWait: 1000 })
 
 // Watch for a theme changes
-watch(() => config.value?.theme, () => {
-  document.body!.parentElement!.dataset.bsTheme = config.value?.theme || "light"
+const isDartPrefered = usePreferredDark()
+const actualTheme = computed(() => {
+  var theme = config.value?.theme
+  if(!theme || theme === "auto")
+    theme = isDartPrefered.value ? "dark" : "light"
+  return theme
+})
+watch(actualTheme, () => {
+  document.body!.parentElement!.dataset.bsTheme = actualTheme.value
 })
 
 // Watch for a update interval changes
@@ -210,7 +217,9 @@ const fetchSource = async (source: SourceConfig) => {
   if (!cfg) return []
   const posts = []
 
-  for (const tag of source.tags) {
+  for (let tag of source.tags) {
+    if(tag.startsWith("!")) continue;
+    if(tag.startsWith("#")) tag = tag.substring(1)
     const items = await fetchJson(`https://${source.domain}/api/v1/timelines/tag/${encodeURIComponent(tag)}?limit=${cfg.limit}`)
     posts.push(...items)
   }
@@ -241,6 +250,21 @@ async function fetchAllPosts() {
     else
       posts.unshift(post)
   }
+
+  type Job = ()=>void;
+  const jobsPerServer: Record<string, Array<Job>> = {}
+
+  const addJob = (domain:string, job: Job) => {
+    (jobsPerServer[domain] ??= []).push(job)
+  }
+
+  for(const domain of cfg.servers) {
+    for(const tag of cfg.tags) {
+      if(tag.startsWith("!")) continue
+      if(!tag.startsWith){}
+    }
+  }
+
 
   // Start all sources in parallel
   const tasks = groupedSources.value.map(source => fetchSource(source));
@@ -360,7 +384,7 @@ const hideAuthor = (url: string) => {
 
 const toggleTheme = () => {
   if (!config.value) return
-  config.value.theme = config.value.theme === "dark" ? "light" : "dark"
+  config.value.theme = actualTheme.value === "dark" ? "light" : "dark"
 }
 
 const aboutLink = computed(() => {
@@ -380,7 +404,7 @@ const privacyLink = computed(() => {
 <template>
   <div id="page">
     <span v-show="updateInProgress" class="position-fixed bottom-0 start-0 m-1 opacity-25 text-muted">♥</span>
-    <header v-if="config?.info === 'top'">
+    <header v-if="config?.showInfobar">
       <InfoBar :config="config" class="secret-hover">
         <small class="text-secondary secret float-end">
           [<a href="#" class="text-secondary" data-bs-toggle="modal" data-bs-target="#configModal">edit</a>]
@@ -415,7 +439,7 @@ const privacyLink = computed(() => {
     <ConfigModal v-if="config" v-model="config" id="configModal" />
 
     <footer>
-      <button class="btn btn-link text-muted" @click="toggleTheme(); false">[{{ config?.theme == "dark" ? "Light" : "Dark"
+      <button class="btn btn-link text-muted" @click="toggleTheme(); false">[{{ actualTheme == "dark" ? "Light" : "Dark"
       }} mode]</button>
       <button class="btn btn-link text-muted" data-bs-toggle="modal" data-bs-target="#configModal">[Customize]</button>
       <div>

@@ -9,6 +9,10 @@ export function isString(test: any) {
     return typeof test === 'string' || test instanceof String
 }
 
+export function arrayUnique<T>(array: T[]) {
+    return array.filter((v,i,a) => a.indexOf(v) === i)
+}
+
 export function deepClone(obj: any) {
     if(window.structuredClone)
         return window.structuredClone(obj)

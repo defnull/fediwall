@@ -2,8 +2,25 @@
     "servers": ["mastodon.social"],
     "tags": ["foss", "cats", "dogs"],
     "accounts": [],
+
+    "loadPublic": false,
+    "loadFederated": false,
+    "loadTrends": false,
+
+    "languages": [],
+    "badWords": [],
+    "hideSensitive": true,
+    "hideBots": true,
+    "hideReplies": true,
+    "hideBoosts": false,
+
     "limit": 20,
     "interval": 10,
-    "theme": "light",
-    "info": "top"
+
+    "title": "Fediwall",
+    "theme": "auto",
+    "showInfobar": true,
+    "showText": true,
+    "showMedia": true,
+    "playVideos": true,
 }

@@ -7,10 +7,27 @@ export const fallbackConfig: Config = {
     servers: ["mastodon.social"],
     tags: ["foss", "cats", "dogs"],
     accounts: [],
+
+    loadPublic: false,
+    loadFederated: false,
+    loadTrends: false,
+
+    languages: [], // empty = do not filter based on language
+    badWords: [],
+    hideSensitive: true,
+    hideBots: true,
+    hideReplies: true,
+    hideBoosts: false,
+
     limit: 20,
     interval: 10,
-    theme: "light",
-    info: "top",
+
+    title: "Fediwall",
+    theme: "auto",
+    showInfobar: true,
+    showText: true,
+    showMedia: true,
+    playVideos: true,
 }
 
 // URL for a site-config file that overrides the default configuration above, if present.
