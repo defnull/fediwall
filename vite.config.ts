@@ -9,9 +9,11 @@ var version;
 
 try {
   var gitInfo = gitDescribeSync();
-  version = `${gitInfo.tag}`;
-  if (gitInfo.distance)
-    version += `-${gitInfo.distance}+${gitInfo.hash}`
+  if(gitInfo.tag) {
+    version = `${gitInfo.tag}`;
+    if (gitInfo.distance)
+      version += `-${gitInfo.distance}+${gitInfo.hash}`
+  }
 } catch { }
 
 // https://vitejs.dev/config/
