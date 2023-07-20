@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, onMounted, onUpdated, ref, watch } from 'vue';
 import Card, { type Post } from './components/Card.vue';
-import { useWindowSize, watchDebounced } from '@vueuse/core'
+import { useDocumentVisibility, useWindowSize, watchDebounced } from '@vueuse/core'
 import ConfigModal from './components/ConfigModal.vue';
 import { loadConfig, type Config } from './config';
 import InfoBar from './components/InfoBar.vue';
@@ -14,17 +14,18 @@ const hidden = ref<Array<string>>([])
 const banned = ref<Array<string>>([])
 const updateInProgress = ref(false)
 
-var updateIntervalHandle: number;
 const accountToLocalId: Record<string, string | null> = {}
+var updateIntervalHandle: number;
+var lastUpdate = 0;
 
 onMounted(async () => {
   config.value = await loadConfig()
-  // Trigger update once. Timed updates are started by a watcher below.
-  await updateWall()
+  if (visibilityState.value !== "hidden")
+    restartUpdates()
 })
 
 onBeforeUnmount(() => {
-  clearInterval(updateIntervalHandle)
+  stopUpdates()
 })
 
 // Re-layout Masonry on dom updates or window size changes
@@ -39,19 +40,15 @@ watch(() => config.value?.theme, () => {
 })
 
 // Watch for a update interval changes
-watch(() => config.value?.interval, () => {
-  clearInterval(updateIntervalHandle)
-  if (!config.value) return
+watch(() => config.value?.interval, () => restartUpdates())
 
-  // Update  interval is large enough to not hit the mastodon default rate limit
-  const rqPerUpdate = config.value.accounts.length * 2 + config.value.tags.length
-  const maxPerSecond = 300 / (5 * 60) / 2 // Be nice, use only half rate limit
-  const minInternal = Math.ceil(rqPerUpdate / maxPerSecond)
-  const interval = Math.max(minInternal, config.value.interval)
-
-  updateIntervalHandle = setInterval(() => {
-    updateWall()
-  }, interval * 1000)
+// Pause updates while tab/window is hidden
+const visibilityState = useDocumentVisibility()
+watch(visibilityState, () => {
+  if (visibilityState.value === "hidden")
+    stopUpdates()
+  else
+    restartUpdates()
 })
 
 // Souces grouped by server
@@ -260,6 +257,35 @@ async function fetchAllPosts() {
 }
 
 /**
+ * Starts or restarts the update interval timer.
+ */
+const restartUpdates = () => {
+  stopUpdates()
+  if (!config.value) return
+
+  // Mastodon default rate limit is 1/s (300/5m)
+  // Be nice, only send one request every 2 seconds on average.
+  const rqPerUpdate = config.value.accounts.length + config.value.tags.length
+  const minInternal = Math.ceil(rqPerUpdate * 2)
+  const interval = Math.max(minInternal, config.value.interval)
+
+  updateIntervalHandle = setInterval(() => {
+    updateWall()
+  }, interval * 1000)
+
+  // Trigger update immediately if new interval allows it
+  if (lastUpdate + interval < new Date().getTime())
+    updateWall()
+}
+
+/**
+ * Stops the update interval
+ */
+const stopUpdates = () => {
+  clearInterval(updateIntervalHandle)
+}
+
+/**
  * Trigger a wall update.
  * 
  * Does nothing if there is an update running already.
@@ -273,14 +299,16 @@ async function updateWall() {
     return
   }
 
-  console.debug("Startung wall update...")
+  console.debug("Updating wall...")
   updateInProgress.value = true
+
   try {
     allPosts.value = await fetchAllPosts()
     console.debug("Update completed")
   } catch (e) {
     console.warn("Update failed", e)
   } finally {
+    lastUpdate = Date.now()
     updateInProgress.value = false;
   }
 
@@ -386,7 +414,8 @@ const privacyLink = computed(() => {
     <ConfigModal v-if="config" v-model="config" id="configModal" />
 
     <footer>
-      <button class="btn btn-link text-muted" @click="toggleTheme(); false">[{{ config?.theme == "dark" ? "Light" : "Dark" }} mode]</button>
+      <button class="btn btn-link text-muted" @click="toggleTheme(); false">[{{ config?.theme == "dark" ? "Light" : "Dark"
+      }} mode]</button>
       <button class="btn btn-link text-muted" data-bs-toggle="modal" data-bs-target="#configModal">[Customize]</button>
       <div>
         <a :href="privacyLink" target="_blank" class="mx-1">Privacy policy</a>
