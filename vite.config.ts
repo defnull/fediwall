@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import viteCompression from 'vite-plugin-compression';
 import { gitDescribeSync } from 'git-describe';
+import viteLegacy from '@vitejs/plugin-legacy'
 
 var version;
 
@@ -23,7 +24,9 @@ export default defineConfig({
     __VERSION__: JSON.stringify(version)
   },
   plugins: [
-    vue(), viteCompression()
+    vue(),
+    viteCompression(),
+    viteLegacy(),
   ],
   resolve: {
     alias: {
