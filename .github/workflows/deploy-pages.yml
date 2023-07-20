@@ -25,7 +25,7 @@ jobs:
       - name: Copy demo config
         run: cp .github/workflows/demo-config.json public/wall-config.json
       - name: Build
-        run: npm run build -- --base=/fediwall/
+        run: npm run build -- --base=./
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
