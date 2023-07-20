@@ -5,6 +5,7 @@ import { useDocumentVisibility, useWindowSize, watchDebounced } from '@vueuse/co
 import ConfigModal from './components/ConfigModal.vue';
 import { loadConfig, type Config } from './config';
 import InfoBar from './components/InfoBar.vue';
+import { gitVersion } from '@/defaults'
 
 const config = ref<Config>();
 
@@ -418,9 +419,10 @@ const privacyLink = computed(() => {
       }} mode]</button>
       <button class="btn btn-link text-muted" data-bs-toggle="modal" data-bs-target="#configModal">[Customize]</button>
       <div>
-        <a :href="privacyLink" target="_blank" class="mx-1">Privacy policy</a>
+        <a href="https://github.com/defnull/fediwall" target="_blank" class="mx-1 text-muted">Fediwall <span v-if="gitVersion">{{ gitVersion }}</span></a>
         - <a href="https://github.com/defnull/fediwall" target="_blank" class="mx-1">Github</a>
         - <a href="https://github.com/defnull/fediwall#readme" target="_blank" class="mx-1">Documentation</a>
+        - <a :href="privacyLink" target="_blank" class="mx-1">Privacy policy</a>
       </div>
     </footer>
   </div>

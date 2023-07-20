@@ -15,3 +15,5 @@ export const fallbackConfig: Config = {
 
 // URL for a site-config file that overrides the default configuration above, if present.
 export const siteConfigUrl = "wall-config.json"
+
+export const gitVersion = __VERSION__ || undefined;
