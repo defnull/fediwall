@@ -15,7 +15,12 @@ export type Post = {
         url?: string;
     };
 
-    media?: string;
+    media?: {
+      url: string
+      type: string
+      preview?: string
+      desc?: string
+    };
     pinned?: boolean;
 };
 
@@ -44,8 +49,11 @@ useIntervalFn(() => {
         <slot name="topleft"></slot>
       </div>
       <div class="card-body">
-        <img v-if="post.media" :src="post.media" class="wall-media mb-3">
-        <p class="card-text" v-dompurify-html="post.content"></p>
+        <img v-if="post.media?.type == 'image'" :src="post.media.url" :alt="post.media.desc" class="wall-media mb-3">
+        <video v-else-if="post.media?.type == 'video'" autoplay muted loop controls :poster="post.media.preview" :alt="post.media.desc" class="wall-media mb-3">
+          <source :src="post.media.url">
+          </video>
+        <div class="card-text" v-dompurify-html="post.content"></div>
         <p class="card-text text-end text-break"><a :href="post.url" target="_blank"
               alt="${post.date}" class="text-decoration-none text-muted"><small>{{ timeAgo }}</small></a></p>
       </div>

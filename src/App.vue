@@ -184,9 +184,15 @@ const statusToWallPost = (status: any): Post => {
     status = status.reblog
 
   var media;
-  const image = status.media_attachments?.find((m: any) => m.type == "image")
-  if (image)
-    media = image.url
+  const att = status.media_attachments?.find((m: any) => ["image", "video"].includes(m.type))
+  if (att) {
+    media = {
+      url: att.url,
+      type: att.type,
+      preview: att.preview_url,
+      desc: att.description
+    }
+  }
 
   return {
     id: status.id,
@@ -419,7 +425,8 @@ const privacyLink = computed(() => {
       }} mode]</button>
       <button class="btn btn-link text-muted" data-bs-toggle="modal" data-bs-target="#configModal">[Customize]</button>
       <div>
-        <a href="https://github.com/defnull/fediwall" target="_blank" class="mx-1 text-muted">Fediwall <span v-if="gitVersion">{{ gitVersion }}</span></a>
+        <a href="https://github.com/defnull/fediwall" target="_blank" class="mx-1 text-muted">Fediwall <span
+            v-if="gitVersion">{{ gitVersion }}</span></a>
         - <a href="https://github.com/defnull/fediwall" target="_blank" class="mx-1">Github</a>
         - <a href="https://github.com/defnull/fediwall#readme" target="_blank" class="mx-1">Documentation</a>
         - <a :href="privacyLink" target="_blank" class="mx-1">Privacy policy</a>
