@@ -6,6 +6,8 @@ import ConfigModal from './components/ConfigModal.vue';
 import { loadConfig, type Config } from './config';
 import InfoBar from './components/InfoBar.vue';
 import { gitVersion } from '@/defaults'
+import { replaceInText } from '@/utils'
+import DOMPurify from 'dompurify'
 
 const config = ref<Config>();
 
@@ -192,14 +194,38 @@ const statusToWallPost = (status: any): Post => {
     id: status.id,
     url: status.url,
     author: {
-      name: status.account.display_name || status.account.username,
+      name: processContent(status.account.display_name || status.account.username, status.account.emojis || []),
       url: status.account.url,
       avatar: status.account.avatar,
     },
-    content: status.content,
+    content: processContent(status.content, status.emojis || []),
     date,
     media,
   }
+}
+
+const animate = true;
+const emojiPattern = /(?<=[^a-z0-9:]|^):([a-z0-9_]{2,}):(?=[^a-z0-9:]|$)/igmu
+const processContent = (content: string, emojiMeta: Array<any>) => {
+  content = DOMPurify.sanitize(content)
+
+  if (emojiMeta.length) {
+    var tmpNode = document.createElement("div");
+    tmpNode.innerHTML = content
+    replaceInText(tmpNode, emojiPattern, m => {
+      const code = m[1];
+      const hit = emojiMeta.find(e => e.shortcode === code)
+      if (!hit || !hit.url) return m[0]
+      const img = document.createElement("img")
+      img.src = (animate ? hit.url : hit.static_url) || hit.url
+      img.classList.add("emoji")
+      img.alt = img.title = `:${code}:`
+      return img;
+    })
+    content = tmpNode.innerHTML
+  }
+
+  return content
 }
 
 /**

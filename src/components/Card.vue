@@ -71,6 +71,14 @@ useIntervalFn(() => {
   height: 2em;
 }
 
+.wall-item img.emoji {
+  height: 1em;
+  width: 1em;
+  object-fit: contain;
+  vertical-align: middle;
+  font-size: inherit;
+}
+
 .wall-item .wall-media {
   width: 100%;
   border-radius: 5px;

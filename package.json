@@ -19,6 +19,7 @@
   "dependencies": {
     "@vueuse/core": "^10.2.1",
     "bootstrap": "^5.3.0",
+    "dompurify": "^3.0.5",
     "moment": "^2.29.4",
     "vue": "^3.3.4",
     "vue-dompurify-html": "^4.1.4",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@tsconfig/node18": "^2.0.1",
+    "@types/dompurify": "^3.0.2",
     "@types/node": "^18.16.17",
     "@vitejs/plugin-legacy": "^4.1.0",
     "@vitejs/plugin-vue": "^4.2.3",
