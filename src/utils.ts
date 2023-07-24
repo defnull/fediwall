@@ -13,6 +13,10 @@ export function arrayUnique<T>(array: T[]) {
     return array.filter((v,i,a) => a.indexOf(v) === i)
 }
 
+export function regexEscape(str: string) {
+    return str.toString().replace(/([.?*+^$[\]\\(){}|-])/g, '\\$1');
+}
+
 export function deepClone(obj: any) {
     if(window.structuredClone)
         return window.structuredClone(obj)

@@ -6,6 +6,7 @@ import ConfigModal from './components/ConfigModal.vue';
 import { loadConfig, type Config } from './config';
 import InfoBar from './components/InfoBar.vue';
 import { gitVersion } from '@/defaults'
+import { regexEscape } from '@/utils'
 
 const config = ref<Config>();
 
@@ -117,20 +118,41 @@ async function getLocalUser(user: string, domain: string): Promise<any> {
  * Check if a mastodon status document should be accepted
  */
 const filterStatus = (status: any) => {
+  const cfg = config.value
+  if (!cfg) return false;
+
+  // Filter reblogs?
+  if (cfg.hideBoosts && status.reblog) return false;
+
+  // Unwrap boosts here so the other filters are checked against the status that
+  // is going to be displayed, not just the boost-status.
   if (status.reblog)
     status = status.reblog
 
-  // Filter sensitive posts (TODO: Allow if configured)
-  if (status?.sensitive) return false;
-  // Filter replies (TODO: Allow if configured)
-  if (status?.in_reply_to_id) return false;
-  // Filter non-public posts
-  if (status?.visibility !== "public") return false;
-  // Filter bad actors
-  if (status?.account?.suspended) return false;
-  if (status?.account?.limted) return false;
-  // TODO: Filter bots?
-  //if(post?.account?.bot) return false;
+  // Filter by language
+  if (cfg.languages.length > 0
+    && !cfg.languages.includes(status.language || "en")) return false;
+  // Filter sensitive content?
+  if (cfg.hideSensitive && status.sensitive) return false;
+  // Filter replies?
+  if (cfg.hideReplies && status.in_reply_to_id) return false;
+  // Filter bots?
+  if (cfg.hideBots && status.account?.bot) return false;
+  // Filter bad hashtags or words
+  if (cfg.badWords.length) {
+    const pattern = new RegExp(`\\b(${cfg.badWords.map(regexEscape).join("|")})\\b`, 'i');
+    if (status.tags?.find((tag: any) => cfg.badWords.includes(tag.name)))
+      return false;
+    if (status.content.match(pattern))
+      return false;
+  }
+
+  // Filter non-public content
+  if (status.visibility !== "public") return false;
+  // Filter limited or suspended accounts
+  if (status.account?.suspended) return false;
+  if (status.account?.limted) return false;
+
   // Accept anything else
   return true;
 }
@@ -233,7 +255,7 @@ async function fetchAllPosts() {
   // Collect results
   const posts: Post[] = []
   const addOrRepaceStatus = (status: any) => {
-    if(!status || !filterStatus(status)) return;
+    if (!status || !filterStatus(status)) return;
     const post = statusToWallPost(status)
     const i = posts.findIndex(p => p.url === post.url)
     if (i >= 0)
