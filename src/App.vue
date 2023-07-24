@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, onMounted, onUpdated, ref, watch } from 'vue';
-import Card, { type Post } from './components/Card.vue';
+import Card from './components/Card.vue';
 import { useDocumentVisibility, usePreferredDark, useWindowSize, watchDebounced } from '@vueuse/core'
 import ConfigModal from './components/ConfigModal.vue';
-import { loadConfig, type Config } from './config';
+import { loadConfig } from './config';
 import InfoBar from './components/InfoBar.vue';
 import { gitVersion } from '@/defaults'
 import { regexEscape } from '@/utils'
+import {type Config, type Post} from '@/types';
 
 const config = ref<Config>();
 

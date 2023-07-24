@@ -2,22 +2,7 @@
 import { useIntervalFn } from '@vueuse/core'
 import { ref } from 'vue';
 import moment from 'moment'
-
-export type Post = {
-    id: string;
-    url: string;
-    content: string;
-    date: string;
-
-    author?: {
-        name: string;
-        avatar?: string;
-        url?: string;
-    };
-
-    media?: string;
-    pinned?: boolean;
-};
+import { type Post } from '@/types';
 
 const props = defineProps<{
   post: Post

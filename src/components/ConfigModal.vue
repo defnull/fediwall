@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { sanatizeConfig, isServer, isLanguage, toQuery, type Config } from '@/config';
+import { sanatizeConfig, isServer, isLanguage, toQuery } from '@/config';
 import { computed, ref } from 'vue';
 import { arrayUnique } from '@/utils';
 import { useClipboard } from '@vueuse/core'
+import {type Config} from '@/types';
 
 const emit = defineEmits(['update:modelValue'])
 const modalDom = ref(null)

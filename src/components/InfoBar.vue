@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { type Config } from '@/config';
-import { ref } from 'vue';
+import { type Config } from '@/types';
 
 const props = defineProps<{
     config: Config

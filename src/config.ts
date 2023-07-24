@@ -1,34 +1,9 @@
 
 import { arrayUnique, deepClone, isString } from "./utils";
 import { fallbackConfig, siteConfigUrl } from "@/defaults";
+import {type Config} from '@/types';
 
-export type Config = {
-    servers: Array<string>,
-    tags: Array<string>,
-    accounts: Array<string>,
 
-    loadPublic: boolean,
-    loadFederated: boolean,
-    loadTrends: boolean,
-
-    languages: Array<string>,
-    badWords: Array<string>,
-    hideSensitive: boolean,
-    hideBoosts: boolean,
-    hideReplies: boolean,
-    hideBots: boolean,
-
-    limit: number,
-    interval: number,
-
-    title: string,
-    theme: string,
-    showInfobar: boolean,
-
-    showText: boolean,
-    showMedia: boolean,
-    playVideos: boolean,
-}
 
 var siteConfig: Config | null = null;
 
