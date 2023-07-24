@@ -10,7 +10,7 @@ export function isString(test: any) {
 }
 
 export function arrayUnique<T>(array: T[]) {
-    return array.filter((v,i,a) => a.indexOf(v) === i)
+    return array.filter((v, i, a) => a.indexOf(v) === i)
 }
 
 export function regexEscape(str: string) {
@@ -18,7 +18,7 @@ export function regexEscape(str: string) {
 }
 
 export function deepClone(obj: any) {
-    if(window.structuredClone)
+    if (window.structuredClone)
         return window.structuredClone(obj)
     return JSON.parse(JSON.stringify(obj))
 }

@@ -23,7 +23,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.js'
 import { createApp } from 'vue'
 import App from '@/App.vue'
 
-import {VueMasonryPlugin} from 'vue-masonry';
+import { VueMasonryPlugin } from 'vue-masonry';
 import VueDOMPurifyHTML from 'vue-dompurify-html';
 
 const app = createApp(App)

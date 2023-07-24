@@ -1,5 +1,5 @@
 
-import {type Config} from '@/types';
+import { type Config } from '@/types';
 
 // Fallback configuration in case the site config fails to load or is missing required fields.
 // TODO: Maybe just fail in that case and not hard-code mastodon.social?

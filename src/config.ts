@@ -1,7 +1,7 @@
 
 import { arrayUnique, deepClone, isString } from "./utils";
 import { fallbackConfig, siteConfigUrl } from "@/defaults";
-import {type Config} from '@/types';
+import { type Config } from '@/types';
 
 
 

@@ -6,8 +6,8 @@ import ConfigModal from './components/ConfigModal.vue';
 import { loadConfig } from './config';
 import InfoBar from './components/InfoBar.vue';
 import { gitVersion } from '@/defaults'
-import { regexEscape } from '@/utils'
-import {type Config, type Post} from '@/types';
+import { type Config, type Post } from '@/types';
+import { fetchPosts } from '@/sources'
 
 const config = ref<Config>();
 
@@ -17,7 +17,6 @@ const hidden = ref<Array<string>>([])
 const banned = ref<Array<string>>([])
 const updateInProgress = ref(false)
 
-const accountToLocalId: Record<string, string | null> = {}
 var updateIntervalHandle: number;
 var lastUpdate = 0;
 
@@ -61,233 +60,8 @@ watch(visibilityState, () => {
     restartUpdates()
 })
 
-/**
- * Fetch a json resources from a given URL.
- * Automaticaly detect mastodon rate limits and wait and retry up to 3 times.
- */
-async function fetchJson(url: string) {
-  var rs = await fetch(url)
 
-  // Auto-retry rate limit errors
-  var errCount = 0
-  while (!rs.ok) {
-    if (errCount++ > 3)
-      break // Do not retry anymore
 
-    if (rs.headers.get("X-RateLimit-Remaining") === "0") {
-      const resetTime = new Date(rs.headers.get("X-RateLimit-Reset") || (new Date().getTime() + 10000)).getTime();
-      const referenceTime = new Date(rs.headers.get("Date") || new Date()).getTime();
-      const sleep = Math.max(0, resetTime - referenceTime) + 1000 // 1 second leeway
-      await new Promise(resolve => setTimeout(resolve, sleep));
-    } else {
-      break // Do not retry
-    }
-
-    // Retry
-    rs = await fetch(url)
-  }
-
-  const json = await rs.json()
-  if (json.error) {
-    console.warn(`Fetch error: ${rs.status} ${JSON.stringify(json)}`)
-    const err = new Error(json.error);
-    (err as any).status = rs.status;
-    throw err;
-  }
-  return json
-}
-
-/**
- * Returns the instance-local account ID for a given user name.
- * Results are cached. Returns null if not found, or undefined on errors.
- */
-async function getLocalUser(user: string, domain: string): Promise<any> {
-  const key = `${user}@${domain}`
-
-  if (!accountToLocalId.hasOwnProperty(key)) {
-    try {
-      accountToLocalId[key] = (await fetchJson(`https://${domain}/api/v1/accounts/lookup?acct=${encodeURIComponent(user)}`))
-    } catch (e) {
-      if ((e as any).status === 404)
-        accountToLocalId[key] = null;
-    }
-  }
-  return accountToLocalId[key]
-}
-
-/**
- * Check if a mastodon status document should be accepted
- */
-const filterStatus = (status: any) => {
-  const cfg = config.value
-  if (!cfg) return false;
-
-  // Filter reblogs?
-  if (cfg.hideBoosts && status.reblog) return false;
-
-  // Unwrap boosts here so the other filters are checked against the status that
-  // is going to be displayed, not just the boost-status.
-  if (status.reblog)
-    status = status.reblog
-
-  // Filter by language
-  if (cfg.languages.length > 0
-    && !cfg.languages.includes(status.language || "en")) return false;
-  // Filter sensitive content?
-  if (cfg.hideSensitive && status.sensitive) return false;
-  // Filter replies?
-  if (cfg.hideReplies && status.in_reply_to_id) return false;
-  // Filter bots?
-  if (cfg.hideBots && status.account?.bot) return false;
-  // Filter bad hashtags or words
-  if (cfg.badWords.length) {
-    const pattern = new RegExp(`\\b(${cfg.badWords.map(regexEscape).join("|")})\\b`, 'i');
-    if (status.tags?.find((tag: any) => cfg.badWords.includes(tag.name)))
-      return false;
-    if (status.content.match(pattern))
-      return false;
-  }
-
-  // Filter non-public content
-  if (status.visibility !== "public") return false;
-  // Filter limited or suspended accounts
-  if (status.account?.suspended) return false;
-  if (status.account?.limted) return false;
-
-  // Accept anything else
-  return true;
-}
-
-/**
- * Convert a mastdon status object to a Post.
- */
-const statusToWallPost = (status: any): Post => {
-  var date = status.created_at
-
-  if (status.reblog)
-    status = status.reblog
-
-  var media;
-  const image = status.media_attachments?.find((m: any) => m.type == "image")
-  if (image)
-    media = image.url
-
-  return {
-    id: status.id,
-    url: status.url,
-    author: {
-      name: status.account.display_name || status.account.username,
-      url: status.account.url,
-      avatar: status.account.avatar,
-    },
-    content: status.content,
-    date,
-    media,
-  }
-}
-
-/**
- * Fetch Posts from all sources.
- */
-async function fetchAllPosts() {
-  const cfg = config.value
-  if (!cfg) return []
-
-  type Task = () => Promise<any[]>;
-
-  // Group tasks by domain (see below)
-  const domainTasks: Record<string, Array<Task>> = {}
-  const addTask = (domain: string, task: Task) => {
-    (domainTasks[domain] ??= []).push(task)
-  }
-
-  // Load tags from all servers
-  for (const domain of cfg.servers) {
-    for (const tag of cfg.tags) {
-      addTask(domain, () => {
-        return fetchJson(`https://${domain}/api/v1/timelines/tag/${encodeURIComponent(tag)}?limit=${cfg.limit}`)
-      })
-    }
-  }
-
-  // Load account timelines from the home server of the account, or all servers
-  // if the account is not fully qualified (missing domain part).
-  for (const account of cfg.accounts) {
-    const [user, domain] = account.split('@', 2)
-    const domains = domain ? [domain] : [...cfg.servers]
-    for (const domain of domains) {
-      addTask(domain, async () => {
-        const localUser = await getLocalUser(user, domain)
-        if (!localUser || !localUser.id) return [];
-        if (localUser.bot && cfg.hideBots && cfg.hideBoosts) return [];
-
-        let url = `https://${domain}/api/v1/accounts/${encodeURIComponent(localUser.id)}/statuses?limit=${cfg.limit}`
-        if (cfg.hideReplies) url += "&exclude_replies=True"
-        if (cfg.hideBoosts) url += "&exclude_reblogs=True"
-        return await fetchJson(url)
-      })
-    }
-  }
-
-  // Load trends from all servers
-  if (cfg.loadTrends) {
-    for (const domain of cfg.servers) {
-      addTask(domain, async () => {
-        return await fetchJson(`https://${domain}/api/v1/trends/statuses?limit=${cfg.limit}`)
-      })
-    }
-  }
-
-  // Load public timeline from all servers, optionally limited to just local
-  // or just federated posts.
-  if (cfg.loadPublic || cfg.loadFederated) {
-    for (const domain of cfg.servers) {
-      let url = `https://${domain}/api/v1/timelines/public`
-      if (!cfg.loadPublic)
-        url += "?remote=True"
-      if (!cfg.loadFederated)
-        url += "?local=True"
-      addTask(domain, async () => {
-        return await fetchJson(url)
-      })
-    }
-  }
-
-  // Collect results
-  const posts: Post[] = []
-  const addOrRepaceStatus = (status: any) => {
-    if (!status || !filterStatus(status)) return;
-    const post = statusToWallPost(status)
-    const i = posts.findIndex(p => p.url === post.url)
-    if (i >= 0)
-      posts[i] = post
-    else
-      posts.unshift(post)
-  }
-
-  // Be nice and not overwhelm servers with parallel requests.
-  // Run tasks for the same domain in sequence instead.
-  const groupedTasks = Object.entries(domainTasks)
-    .map(([domain, tasks]) => {
-      return async () => {
-        for (const task of tasks) {
-          try {
-            (await task()).forEach(addOrRepaceStatus)
-          } catch (err) {
-            console.warn(`Update task failed for domain ${domain}`, err)
-          }
-        }
-      }
-    })
-
-  // Start all the domain-grouped tasks in parallel, so reach server can be
-  // processed as fast as its rate-limit allows.
-  // TODO: Add a timeout
-  await Promise.allSettled(groupedTasks.map(task => task()))
-
-  // Done. Return collected posts
-  return posts
-}
 
 /**
  * Starts or restarts the update interval timer.
@@ -336,7 +110,7 @@ async function updateWall() {
   updateInProgress.value = true
 
   try {
-    allPosts.value = await fetchAllPosts()
+    allPosts.value = await fetchPosts(cfg)
     console.debug("Update completed")
   } catch (e) {
     console.warn("Update failed", e)
@@ -347,8 +121,12 @@ async function updateWall() {
 
 }
 
+/**
+ * Filter and order posts based on real-time criteria (e.g. pinned or hidden posts).
+ * Most of filtering already happened earlier.
+ */
 const filteredPosts = computed(() => {
-  // copy to make sure those are detected as a reactive dependency
+  // Copy to make sure those are detected as a reactive dependencies
   var posts: Array<Post> = JSON.parse(JSON.stringify(allPosts.value))
   const pinnedLocal = [...pinned.value]
   const hiddenLocal = [...hidden.value]
