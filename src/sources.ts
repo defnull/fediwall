@@ -1,5 +1,5 @@
-import type { Config, MastodonAccount, MastodonStatus, Post } from "./types";
-import { regexEscape } from "./utils";
+import type { Config, MastodonAccount, MastodonStatus, Post } from "@/types";
+import { regexEscape } from "@/utils";
 
 
 /**

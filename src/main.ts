@@ -21,10 +21,10 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap/dist/js/bootstrap.bundle.js'
 
 import { createApp } from 'vue'
-import App from '@/App.vue'
-
 import { VueMasonryPlugin } from 'vue-masonry';
 import VueDOMPurifyHTML from 'vue-dompurify-html';
+
+import App from '@/App.vue'
 
 const app = createApp(App)
 app.use(VueMasonryPlugin)
