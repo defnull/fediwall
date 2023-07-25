@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { type Config } from '@/types';
 
-const props = defineProps<{
+defineProps<{
     config: Config
 }>()
 
@@ -21,7 +21,7 @@ const props = defineProps<{
         <template v-if="config.accounts.length && config?.tags.length"> and </template>
         <template v-if="config.accounts.length">
             posts or boosts by
-            <template v-for="(acc, index) in config.accounts" :key="t">
+            <template v-for="(acc, index) in config.accounts" :key="acc">
                 <code>@{{ acc }}</code>
                 <template v-if="index < config.accounts.length - 2">, </template>
                 <template v-else-if="index == config.accounts.length - 2"> or </template>

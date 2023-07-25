@@ -14,7 +14,8 @@
     "dev": "vite",
     "preview": "vite preview",
     "build": "vite build",
-    "check": "vue-tsc --noEmit -p tsconfig.app.json --composite false"
+    "check": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
+    "lint": "eslint ./src --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
     "@vueuse/core": "^10.2.1",
@@ -25,11 +26,17 @@
     "vue-masonry": "^0.16.0"
   },
   "devDependencies": {
+    "@rushstack/eslint-patch": "^1.2.0",
     "@tsconfig/node18": "^2.0.1",
     "@types/node": "^18.16.17",
+    "@typescript-eslint/eslint-plugin": "^6.2.0",
+    "@typescript-eslint/parser": "^6.2.0",
     "@vitejs/plugin-legacy": "^4.1.0",
     "@vitejs/plugin-vue": "^4.2.3",
     "@vue/tsconfig": "^0.4.0",
+    "@vue/eslint-config-typescript": "^11.0.3",
+    "eslint": "^8.45.0",
+    "eslint-plugin-vue": "^9.15.1",
     "git-describe": "^4.1.1",
     "typescript": "~5.0.4",
     "vite": "^4.3.9",

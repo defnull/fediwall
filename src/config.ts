@@ -5,7 +5,7 @@ import { type Config } from '@/types';
 
 
 
-var siteConfig: Config | null = null;
+let siteConfig: Config | null = null;
 
 const themes = ["dark", "light", "auto"];
 const boolYes = ["", "y", "yes", "true"];
@@ -269,7 +269,7 @@ export function sanatizeConfig(config: any): Config {
 }
 
 async function loadSideConfig() {
-    var config;
+    let config;
 
     try {
         config = await (await fetch(siteConfigUrl)).json() || {};

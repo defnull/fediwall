@@ -175,12 +175,6 @@ const toggleTheme = () => {
   config.value.theme = actualTheme.value === "dark" ? "light" : "dark"
 }
 
-const aboutLink = computed(() => {
-  if (config.value?.servers.length)
-    return `https://${config.value.servers[0]}/about`
-  return "#"
-})
-
 const privacyLink = computed(() => {
   if (config.value?.servers.length)
     return `https://${config.value.servers[0]}/privacy-policy`
@@ -204,7 +198,7 @@ const privacyLink = computed(() => {
       <div v-if="filteredPosts.length === 0 && updateInProgress">Loading first posts ...</div>
       <div v-else-if="filteredPosts.length === 0">Nothing there yet ...</div>
       <div v-else v-masonry transition-duration="1s" item-selector=".wall-item" percent-position="true" id="wall">
-        <Card v-masonry-tile class="wall-item secret-hover" v-for="(post, index) in filteredPosts" :key="post.id"
+        <Card v-masonry-tile class="wall-item secret-hover" v-for="post in filteredPosts" :key="post.id"
           :post="post">
           <template v-slot:topleft>
             <div class="dropdown secret">

@@ -109,7 +109,7 @@ const accountCache: Record<string, MastodonAccount | null> = {}
 async function getLocalUser(user: string, domain: string): Promise<any> {
     const key = `${user}@${domain}`
 
-    if (!accountCache.hasOwnProperty(key)) {
+    if (!Object.hasOwnProperty.call(accountCache, key)) {
         try {
             accountCache[key] = (await fetchJson(domain, "v1/accounts/lookup", { acct: user })) as MastodonAccount
         } catch (e) {
@@ -131,10 +131,10 @@ async function fetchJson(domain: string, path: string, query?: Record<string, an
         const pairs = Object.entries(query).map(([key, value]) => [key, value.toString()])
         url += "?" + new URLSearchParams(pairs).toString()
     }
-    var rs = await fetch(url)
+    let rs = await fetch(url)
 
     // Auto-retry rate limit errors
-    var errCount = 0
+    let errCount = 0
     while (!rs.ok) {
         if (errCount++ > 3)
             break // Do not retry anymore
@@ -206,12 +206,12 @@ const filterStatus = (cfg: Config, status: MastodonStatus) => {
  * Convert a mastdon status object to a Post.
  */
 const statusToWallPost = (status: MastodonStatus): Post => {
-    let date = status.created_at
+    const date = status.created_at
 
     if (status.reblog)
         status = status.reblog
 
-    var media;
+    let media;
     const image = status.media_attachments?.find((m: any) => m.type == "image")
     if (image)
         media = image.url
