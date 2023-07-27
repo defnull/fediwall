@@ -4,8 +4,9 @@ import { fallbackConfig, siteConfigUrl } from "@/defaults";
 import { type Config } from '@/types';
 
 
-
-let siteConfig: Config | null = null;
+export const siteConfigParam = "load"
+let siteConfig: Config | undefined;
+let siteConfigSource: string|undefined = undefined;
 
 const themes = ["dark", "light", "auto"];
 const boolYes = ["", "y", "yes", "true"];
@@ -183,9 +184,12 @@ export function fromQuery(query: string): Config {
     return sanatizeConfig(config);
 }
 
-export function toQuery(config: Config): string {
+export function toQuery(config: Config, userConfig?: string): string {
     const params = new URLSearchParams();
     const defaults = siteConfig || fallbackConfig;
+
+    if (siteConfigSource && siteConfigSource !== siteConfigUrl)
+        params.set(siteConfigParam, siteConfigSource)
 
     for (const { names, to } of parameterDefinitions) {
         const value = to(config)
@@ -231,6 +235,15 @@ export function sanatizeConfig(config: any): Config {
         return choices.includes(value) ? value : fallback;
     }
 
+    // Migrate old configuration within same minor release
+    if (isString(config.server)) {
+        console.warn("DEPRECATED: Config parameter 'server' is now an array and called 'servers'.");
+        (config.servers ??= []).push(config.server);
+    }
+    if (isString(config.info))
+        config.showinfo = config.info == "top"
+
+
     const fallback = siteConfig || fallbackConfig;
     const result: Partial<Config> = {}
 
@@ -268,35 +281,28 @@ export function sanatizeConfig(config: any): Config {
     return result as Config;
 }
 
-async function loadSideConfig() {
-    let config;
-
-    try {
-        config = await (await fetch(siteConfigUrl)).json() || {};
-    } catch (e) {
-        console.warn("Site config failed to load, falling back to hard-coded defaults!")
-        return;
-    }
-
-    // Migrate old configuration within same minor release
-    if (isString(config.server)) {
-        console.warn("DEPRECATED: Config parameter 'server' is now an array and called 'servers'.");
-        (config.servers ??= []).push(config.server);
-    }
-    if (isString(config.info))
-        config.showinfo = config.info == "top"
-
-    return sanatizeConfig(config)
-}
-
 export async function loadConfig() {
+    const params = new URLSearchParams(window.location.search);
+    const loadUrl = params.get(siteConfigParam)?.trim()
+
+    const loadJson = async (url: string) => {
+        try {
+            const rs = await fetch(url, {cache: "reload", })
+            if(!rs.ok) throw new Error(`HTTP error! Status: ${rs.status}`);
+            siteConfig = sanatizeConfig(await rs.json() || {});
+            siteConfigSource = url
+        } catch (e) {
+            console.warn(`Failed to load (or parse) [${url}], falling back to defaults.`)
+            return;
+        }
+    }
+
+    if (!siteConfig && loadUrl)
+        await loadJson(loadUrl)
     if (!siteConfig && siteConfigUrl)
-        siteConfig = await loadSideConfig() || null
+        await loadJson(siteConfigUrl)
     if (!siteConfig)
         siteConfig = sanatizeConfig(deepClone(fallbackConfig))
 
-    if (window.location.search)
-        return fromQuery(window.location.search)
-
-    return deepClone({ ...siteConfig })
+    return fromQuery(window.location.search)
 }

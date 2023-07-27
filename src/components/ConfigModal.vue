@@ -2,8 +2,8 @@
 import { sanatizeConfig, isServer, isLanguage, toQuery } from '@/config';
 import { computed, ref } from 'vue';
 import { arrayUnique } from '@/utils';
-import { useClipboard } from '@vueuse/core'
-import {type Config} from '@/types';
+import { type Config } from '@/types';
+import { siteConfigParam } from '@/config'
 
 const emit = defineEmits(['update:modelValue'])
 const modalDom = ref(null)
@@ -96,10 +96,15 @@ const sourceCount = computed(() => {
   return c;
 })
 
-const clip = useClipboard()
+const rateLimitRisk = computed(() => {
+  return sourceCount.value / config.value.interval > 1
+})
 
-const fullConfig = computed(() => {
-  return JSON.stringify(config.value)
+const saveConfigLink = computed(() => {
+  const json = JSON.stringify(config.value, undefined, 2)
+  const bytes = new TextEncoder().encode(json)
+  const binString = Array.from(bytes, (x) => String.fromCodePoint(x)).join("");
+  return "data:application/json;charset=utf-8;base64," + btoa(binString);
 })
 
 const fullUrl = computed(() => {
@@ -312,54 +317,45 @@ const onSubmit = () => {
               <div class="tab-pane" id="ctab-advanced" aria-labelledby="btab-advanced" role="tabpanel">
 
                 <div class="mb-3">
-                  <label for="interval" class="form-label">Interval</label>
+                  <label for="edit-interval" class="form-label">Update interval</label>
                   <div class="ms-5">
-                    <input type="text" class="form-control" name="interval" v-model.lazy="formInterval">
-                    <div class="form-text">Update interval in seconds.</div>
+                    <input type="text" class="form-control" name="edit-interval" v-model.lazy="formInterval">
+                    <div class="form-text">Number of seconds to wait between updates.</div>
                   </div>
                 </div>
 
                 <div class="mb-3">
-                  <label for="limit" class="form-label">Limit results per source</label>
+                  <label for="edit-limit" class="form-label">Results per source</label>
                   <div class="ms-5">
-                    <input type="text" class="form-control" name="limit" v-model.lazy="formLimit">
-                    <div class="form-text">Fetch this many new posts per request.</div>
+                    <input type="text" class="form-control" name="edit-limit" v-model.lazy="formLimit">
+                    <div class="form-text">Limit number of results per hashtag, account or timeline.</div>
                   </div>
                 </div>
 
                 <div class="mb-3">
-                  <h6>Save config</h6>
+                  <h6>Download config</h6>
                   <div class="ms-5">
-                    <div class="input-group">
-                      <input type="text" class="form-control" readonly :value="fullUrl">
-                      <button v-if="clip.isSupported" class="btn btn-outline-secondary" type="button"
-                        @click.prevent="clip.copy(fullUrl)">Copy</button>
+                    <div class="form-text">
+                      You can <a :href="saveConfigLink" target="_blank" download="wall-config.json">download</a> the
+                      current configuration as a JSON file and either upload it as <code>wall-config.json</code>
+                      to your own self-hosted Fediwall, or host it somewhere else and load it via the
+                      <code>?{{ siteConfigParam }}=URL</code> query parameter.
                     </div>
-                    <div class="form-text">Bookmark or share this <a :href="fullUrl" target="_blank">Fediwall link</a>.</div>
-                    <div class="mt-3 input-group">
-                      <input type="text" class="form-control" readonly :value="fullConfig">
-                      <button v-if="clip.isSupported" class="btn btn-outline-secondary" type="button"
-                        @click.prevent="clip.copy(fullUrl)">Copy</button>
-                    </div>
-                    <div class="form-text">Only useful if you plan to self-host Fediwall on your own domain.</div>
                   </div>
                 </div>
-
               </div>
             </div>
-
           </form>
-
-          <div v-if="sourceCount / config.interval > 1" class="alert alert-warning mt-5" role="alert">
-            Checking {{ sourceCount }} sources every {{ formInterval }} seconds requires a high number
-            of API requests per second. Please reduce the number of servers, hashtags or accounts, or increase the update
-            interval.
-          </div>
 
         </div>
 
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary float-end" form="settings-form">Apply</button>
+          <div v-if="rateLimitRisk" class="alert alert-warning mb-3" role="alert">
+            Current configuration updates {{ sourceCount }} sources every {{ formInterval }} seconds and may
+            run into issues with rate-limited servers. Reduce the number of sources (servers, hashtags, accounts)
+            or increase the update interval.
+          </div>
+          <button type="submit" class="btn btn-primary" form="settings-form">Apply config</button>
         </div>
 
       </div>
@@ -371,5 +367,6 @@ const onSubmit = () => {
 .form-label,
 h6 {
   font-weight: bolder;
-}</style>
+}
+</style>
 
