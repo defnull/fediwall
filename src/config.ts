@@ -198,8 +198,9 @@ export function toQuery(config: Config, userConfig?: string): string {
     }
 
     return params.toString()
-        .replace(/%2C/g, ',')
-        .replace(/%40/g, '@')
+        .replace(/%2F/g, '/') // save in query strings
+        .replace(/%2C/g, ',') // save in query strings
+        .replace(/%40/g, '@') // save in query strings
         .replace(/=(&|$)/g, '') // a=&b= -> a&b
 }
 
