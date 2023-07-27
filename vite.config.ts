@@ -26,7 +26,9 @@ export default defineConfig({
     plugins: [
         vue(),
         viteCompression(),
-        viteLegacy(),
+        viteLegacy({
+            targets: 'last 2 versions and not dead, > 0.2%, Firefox ESR, Android >= 7'
+        }),
     ],
     resolve: {
         alias: {
