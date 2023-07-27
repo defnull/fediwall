@@ -4,7 +4,7 @@ import { useDocumentVisibility, usePreferredDark, useWindowSize, watchDebounced 
 
 import { type Config, type Post } from '@/types';
 import { loadConfig } from '@/config';
-import { gitVersion } from '@/defaults'
+import { fallbackConfig, gitVersion } from '@/defaults'
 import { fetchPosts } from '@/sources'
 
 import Card from './components/Card.vue';
@@ -58,6 +58,9 @@ const actualTheme = computed(() => {
 watch(actualTheme, () => {
   document.body!.parentElement!.dataset.bsTheme = actualTheme.value
 })
+
+// Update page title
+watch(() => config.value?.title, () => document.title = config.value?.title || fallbackConfig.title)
 
 // Watch for a update interval changes
 watch(() => config.value?.interval, () => restartUpdates())
