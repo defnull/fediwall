@@ -32,27 +32,6 @@ onBeforeUnmount(() => {
   stopUpdates()
 })
 
-// Re-layout Masonry on dom updates or window size changes
-const fixLayout = inject('redrawVueMasonry') as () => void
-onUpdated(() => fixLayout())
-const windowSize = useWindowSize()
-watchDebounced(windowSize.width, () => { fixLayout() }, { debounce: 500, maxWait: 1000 })
-
-// Watch for a theme changes
-const isDartPrefered = usePreferredDark()
-const actualTheme = computed(() => {
-  var theme = config.value?.theme
-  if (!theme || theme === "auto")
-    theme = isDartPrefered.value ? "dark" : "light"
-  return theme
-})
-watch(actualTheme, () => {
-  document.body!.parentElement!.dataset.bsTheme = actualTheme.value
-})
-
-// Watch for a update interval changes
-watch(() => config.value?.interval, () => restartUpdates())
-
 // Pause updates while tab/window is hidden
 const visibilityState = useDocumentVisibility()
 watch(visibilityState, () => {
@@ -62,6 +41,26 @@ watch(visibilityState, () => {
     restartUpdates()
 })
 
+// Re-layout Masonry on dom updates or window size changes
+const fixLayout = inject('redrawVueMasonry') as () => void
+onUpdated(() => fixLayout())
+const windowSize = useWindowSize()
+watchDebounced(windowSize.width, () => { fixLayout() }, { debounce: 500, maxWait: 1000 })
+
+// Watch for a theme changes
+const isDarkPrefered = usePreferredDark()
+const actualTheme = computed(() => {
+  var theme = config.value?.theme
+  if (!theme || theme === "auto")
+    theme = isDarkPrefered.value ? "dark" : "light"
+  return theme
+})
+watch(actualTheme, () => {
+  document.body!.parentElement!.dataset.bsTheme = actualTheme.value
+})
+
+// Watch for a update interval changes
+watch(() => config.value?.interval, () => restartUpdates())
 
 
 
