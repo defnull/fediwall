@@ -1,4 +1,4 @@
-import type { Config, MastodonAccount, MastodonStatus, Post } from "@/types";
+import type { Config, MastodonAccount, MastodonStatus, Post, PostMedia } from "@/types";
 import { regexEscape } from "@/utils";
 
 
@@ -211,10 +211,18 @@ const statusToWallPost = (status: MastodonStatus): Post => {
     if (status.reblog)
         status = status.reblog
 
-    let media;
-    const image = status.media_attachments?.find((m: any) => m.type == "image")
-    if (image)
-        media = image.url
+    const media = status.media_attachments?.map((m) : PostMedia|undefined => {
+        switch (m.type) {
+            case "image":
+                return { type: "image", url: m.url, preview: m.preview_url, alt: m.description ?? undefined }
+            case "video":
+            case "gifv":
+                return { type: "video", url: m.url, preview: m.preview_url, alt: m.description ?? undefined }
+            case "audio":
+            case "unknown":
+                return
+        }
+    }).filter((m): m is PostMedia => m !== undefined)
 
     return {
         id: status.uri,

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { useIntervalFn } from '@vueuse/core'
-import { ref } from 'vue';
+import { useElementVisibility, useIntervalFn } from '@vueuse/core'
+import { computed, ref } from 'vue';
 import moment from 'moment'
-import { type Post } from '@/types';
+import { type Config, type Post } from '@/types';
 
 const props = defineProps<{
-  post: Post
+  config: Config,
+  post: Post,
 }>()
 
 const timeAgo = ref(moment(props.post.date).fromNow())
@@ -13,6 +14,16 @@ const timeAgo = ref(moment(props.post.date).fromNow())
 useIntervalFn(() => {
   timeAgo.value = moment(props.post.date).fromNow()
 }, 1000)
+
+const media = computed(() => {
+  return props.post.media[0]
+})
+
+const videoElement = ref(null)
+const videoIsVisible = useElementVisibility(videoElement)
+const playVideo = computed(() => {
+  return media.value?.type === "video" && props.config.playVideos && videoIsVisible.value
+})
 
 </script>
 
@@ -29,8 +40,14 @@ useIntervalFn(() => {
         <slot name="topleft"></slot>
       </div>
       <div class="card-body">
-        <img v-if="post.media" :src="post.media" class="wall-media mb-3">
-        <p class="card-text" v-dompurify-html="post.content"></p>
+        <div v-if="config.showMedia" class="wall-media mb-3">
+        <img v-if="media?.type === 'image'" :src="media.url" :alt="media.alt">
+        <video v-else-if="media?.type === 'video'" ref="videoElement"
+          muted loop :autoplay="playVideo" :poster="media.preview" :alt="media.alt" >
+          <source v-if="playVideo" :src="media.url">
+        </video>
+        </div>
+        <p v-if="config.showText" class="card-text" v-dompurify-html="post.content"></p>
         <p class="card-text text-end text-break"><a :href="post.url" target="_blank"
               alt="${post.date}" class="text-decoration-none text-muted"><small>{{ timeAgo }}</small></a></p>
       </div>
@@ -56,10 +73,16 @@ useIntervalFn(() => {
   height: 2em;
 }
 
-.wall-item .wall-media {
+.wall-media {
+}
+
+.wall-media img, .wall-media video {
   width: 100%;
+  max-height: 1wh;
+  object-fit: cover;
   border-radius: 5px;
 }
+
 
 .wall-item .invisible {
   font-size: 0 !important;

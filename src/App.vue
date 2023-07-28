@@ -197,11 +197,13 @@ const privacyLink = computed(() => {
     </header>
 
     <main>
-      <div v-if="filteredPosts.length === 0 && updateInProgress">Loading first posts ...</div>
+      <div v-if="config === undefined">Initialiting ...</div>
+      <div v-else-if="filteredPosts.length === 0 && updateInProgress">Loading first posts ...</div>
       <div v-else-if="filteredPosts.length === 0">Nothing there yet ...</div>
       <div v-else v-masonry transition-duration="1s" item-selector=".wall-item" percent-position="true" id="wall">
         <Card v-masonry-tile class="wall-item secret-hover" v-for="post in filteredPosts" :key="post.id"
-          :post="post">
+          :post="post" :config="config">
+
           <template v-slot:topleft>
             <div class="dropdown secret">
               <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown"
@@ -216,6 +218,7 @@ const privacyLink = computed(() => {
               </ul>
             </div>
           </template>
+          
         </Card>
       </div>
     </main>

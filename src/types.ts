@@ -38,9 +38,17 @@ export type Post = {
         url?: string;
     };
 
-    media?: string;
+    media: Array<PostMedia>;
+
     pinned?: boolean;
 };
+
+export type PostMedia = {
+    type: "image" | "video"
+    url: string,
+    preview: string
+    alt?: string
+}
 
 
 /**
@@ -98,7 +106,7 @@ export type MastodonTag = {
 
 export type MastodonMediaAttachment = {
     id: string;
-    type: 'audio' | 'video' | 'gifv' | 'unknown';
+    type: 'image' | 'audio' | 'video' | 'gifv' | 'unknown';
     blurhash?: string | null;
     description?: string | null;
     preview_url: string;
