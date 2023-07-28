@@ -166,24 +166,24 @@ async function fetchJson(domain: string, path: string, query?: Record<string, an
  * Check if a mastodon status document should be accepted
  */
 const filterStatus = (cfg: Config, status: MastodonStatus) => {
-    // Filter reblogs?
-    if (cfg.hideBoosts && status.reblog) return false;
-
-    // Unwrap boosts here so the other filters are checked against the status that
-    // is going to be displayed, not just the boost-status.
-    if (status.reblog)
+    // Boosts are unwrapped so other filters check the actual status that is
+    // going to be displayed, not the (mostly empty) boost-status.
+    if (status.reblog) {
+        if(cfg.hideBoosts) return false;
         status = status.reblog
+    }
 
-    // Filter by language
+    // These filters are always active
+    if (status.visibility !== "public") return false;
+    if (status.account?.suspended) return false;
+    if (status.account?.limited) return false;
+
+    // Optional filters
     if (cfg.languages.length > 0
         && !cfg.languages.includes(status.language || "en")) return false;
-    // Filter sensitive content?
     if (cfg.hideSensitive && status.sensitive) return false;
-    // Filter replies?
     if (cfg.hideReplies && status.in_reply_to_id) return false;
-    // Filter bots?
     if (cfg.hideBots && status.account?.bot) return false;
-    // Filter bad hashtags or words
     if (cfg.badWords.length) {
         const pattern = new RegExp(`\\b(${cfg.badWords.map(regexEscape).join("|")})\\b`, 'i');
         if (status.tags?.find((tag: any) => cfg.badWords.includes(tag.name)))
@@ -192,13 +192,7 @@ const filterStatus = (cfg: Config, status: MastodonStatus) => {
             return false;
     }
 
-    // Filter non-public content
-    if (status.visibility !== "public") return false;
-    // Filter limited or suspended accounts
-    if (status.account?.suspended) return false;
-    if (status.account?.limited) return false;
-
-    // Filter posts that would show up empty
+    // Skip posts that would show up empty
     if(!cfg.showText && ! status.media_attachments?.length) return false;
     if(!cfg.showMedia && ! status.content.trim()) return false;
 
