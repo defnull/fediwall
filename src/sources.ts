@@ -198,6 +198,10 @@ const filterStatus = (cfg: Config, status: MastodonStatus) => {
     if (status.account?.suspended) return false;
     if (status.account?.limited) return false;
 
+    // Filter posts that would show up empty
+    if(!cfg.showText && ! status.media_attachments?.length) return false;
+    if(!cfg.showMedia && ! status.content.trim()) return false;
+
     // Accept anything else
     return true;
 }
