@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, onMounted, onUpdated, ref, watch } from 'vue';
-import { useDocumentVisibility, usePreferredDark, useWindowSize, watchDebounced } from '@vueuse/core'
+import { createFilterWrapper, debounceFilter, useDocumentVisibility, usePreferredDark, useWindowSize } from '@vueuse/core'
 
 import { type Config, type Post } from '@/types';
 import { loadConfig } from '@/config';
@@ -41,11 +41,13 @@ watch(visibilityState, () => {
     restartUpdates()
 })
 
-// Re-layout Masonry on dom updates or window size changes
+// Fix Masonry layout on updates, config changes or window resize events
 const fixLayout = inject('redrawVueMasonry') as () => void
-onUpdated(() => fixLayout())
 const windowSize = useWindowSize()
-watchDebounced(windowSize.width, () => { fixLayout() }, { debounce: 500, maxWait: 1000 })
+const layoutDebounce = debounceFilter(500, { maxWait: 500 })
+const doFixLayoput = createFilterWrapper(layoutDebounce, () => fixLayout())
+watch([windowSize.width, config, allPosts], doFixLayoput, { deep: true })
+onUpdated(doFixLayoput)
 
 // Watch for a theme changes
 const isDarkPrefered = usePreferredDark()
@@ -201,8 +203,8 @@ const privacyLink = computed(() => {
       <div v-else-if="filteredPosts.length === 0 && updateInProgress">Loading first posts ...</div>
       <div v-else-if="filteredPosts.length === 0">Nothing there yet ...</div>
       <div v-else v-masonry transition-duration="1s" item-selector=".wall-item" percent-position="true" id="wall">
-        <Card v-masonry-tile class="wall-item secret-hover" v-for="post in filteredPosts" :key="post.id"
-          :post="post" :config="config">
+        <Card v-masonry-tile class="wall-item secret-hover" v-for="post in filteredPosts" :key="post.id" :post="post"
+          :config="config">
 
           <template v-slot:topleft>
             <div class="dropdown secret">
@@ -218,7 +220,7 @@ const privacyLink = computed(() => {
               </ul>
             </div>
           </template>
-          
+
         </Card>
       </div>
     </main>
