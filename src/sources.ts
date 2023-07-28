@@ -169,7 +169,7 @@ const filterStatus = (cfg: Config, status: MastodonStatus) => {
     // Boosts are unwrapped so other filters check the actual status that is
     // going to be displayed, not the (mostly empty) boost-status.
     if (status.reblog) {
-        if(cfg.hideBoosts) return false;
+        if (cfg.hideBoosts) return false;
         status = status.reblog
     }
 
@@ -186,15 +186,16 @@ const filterStatus = (cfg: Config, status: MastodonStatus) => {
     if (cfg.hideBots && status.account?.bot) return false;
     if (cfg.badWords.length) {
         const pattern = new RegExp(`\\b(${cfg.badWords.map(regexEscape).join("|")})\\b`, 'i');
-        if (status.tags?.find((tag: any) => cfg.badWords.includes(tag.name)))
-            return false;
-        if (status.content.match(pattern))
+        if (status.tags?.find((tag: any) => cfg.badWords.includes(tag.name))
+            || status.content.match(pattern)
+            || status.spoiler_text?.match(pattern)
+            || status.media_attachments?.find(media => media.description?.match(pattern)))
             return false;
     }
 
     // Skip posts that would show up empty
-    if(!cfg.showText && ! status.media_attachments?.length) return false;
-    if(!cfg.showMedia && ! status.content.trim()) return false;
+    if (!cfg.showText && !status.media_attachments?.length) return false;
+    if (!cfg.showMedia && !status.content.trim()) return false;
 
     // Accept anything else
     return true;
@@ -209,7 +210,7 @@ const statusToWallPost = (status: MastodonStatus): Post => {
     if (status.reblog)
         status = status.reblog
 
-    const media = status.media_attachments?.map((m) : PostMedia|undefined => {
+    const media = status.media_attachments?.map((m): PostMedia | undefined => {
         switch (m.type) {
             case "image":
                 return { type: "image", url: m.url, preview: m.preview_url, alt: m.description ?? undefined }

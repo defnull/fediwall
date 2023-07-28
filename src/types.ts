@@ -68,6 +68,7 @@ export type MastodonStatus = {
     media_attachments: Array<MastodonMediaAttachment>;
     reblog?: MastodonStatus | null;
     sensitive: boolean;
+    spoiler_text?: string | null;
     tags: Array<MastodonTag>;
     uri: string;
     url?: string | null;
