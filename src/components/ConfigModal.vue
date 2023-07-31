@@ -265,9 +265,9 @@ const onSubmit = () => {
                   <label for="edit-theme" class="form-label">Theme:</label>
                   <div class="ms-5">
                     <select class="form-select mb-1" id="edit-theme" v-model="config.theme">
-                      <option value="light">Light</option>
-                      <option value="dark">Dark</option>
-                      <option value="auto">Auto</option>
+                      <option value="light">Light mode</option>
+                      <option value="dark">Dark mode</option>
+                      <option value="auto">Auto (browser default)</option>
                     </select>
                     <div class="form-check mt-2">
                       <input class="form-check-input" type="checkbox" id="edit-info" v-model="config.showInfobar">
