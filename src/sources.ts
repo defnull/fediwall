@@ -1,6 +1,7 @@
 import type { Config, MastodonAccount, MastodonStatus, Post, PostMedia } from "@/types";
 import { regexEscape } from "@/utils";
-
+import { replaceInText } from '@/utils'
+import DOMPurify from 'dompurify'
 
 /**
  * Fetch unique posts from all sources (curently only Mastodon is implemented)
@@ -83,7 +84,7 @@ export async function fetchPosts(cfg: Config): Promise<Post[]> {
                     try {
                         (await task())
                             .filter(status => filterStatus(cfg, status))
-                            .map(statusToWallPost)
+                            .map(status => statusToWallPost(cfg, status))
                             .forEach(addOrRepacePost)
                     } catch (err) {
                         console.warn(`Update task failed for domain ${domain}`, err)
@@ -204,11 +205,40 @@ const filterStatus = (cfg: Config, status: MastodonStatus) => {
 /**
  * Convert a mastdon status object to a Post.
  */
-const statusToWallPost = (status: MastodonStatus): Post => {
+const statusToWallPost = (cfg: Config, status: MastodonStatus): Post => {
     const date = status.created_at
 
     if (status.reblog)
         status = status.reblog
+
+    const animate = cfg.playVideos;
+    const emojiPattern = /(?<=[^a-z0-9:]|^):([a-z0-9_]{2,}):(?=[^a-z0-9:]|$)/igmu
+    const replaceEmojis = (content: string, emojiMeta: Array<any>) => {
+        content = DOMPurify.sanitize(content)
+
+        if (emojiMeta.length) {
+            var tmpNode = document.createElement("div");
+            tmpNode.innerHTML = content
+            replaceInText(tmpNode, emojiPattern, m => {
+                const code = m[1];
+                const hit = emojiMeta.find(e => e.shortcode === code)
+                if (!hit || !hit.url) return m[0]
+                const img = document.createElement("img")
+                img.src = animate ? hit.url : hit.static_url || hit.url
+                img.classList.add("emoji")
+                img.alt = img.title = `:${code}:`
+                return img;
+            })
+            content = tmpNode.innerHTML
+        }
+
+        return content
+    }
+
+    const name = status.account.display_name
+        ? replaceEmojis(status.account.display_name, status.account.emojis)
+        : status.account.username
+    const content = replaceEmojis(status.content, status.emojis)
 
     const media = status.media_attachments?.map((m): PostMedia | undefined => {
         switch (m.type) {
@@ -227,11 +257,11 @@ const statusToWallPost = (status: MastodonStatus): Post => {
         id: status.uri,
         url: status.url || status.uri,
         author: {
-            name: status.account.display_name || status.account.username,
+            name,
             url: status.account.url,
             avatar: status.account.avatar,
         },
-        content: status.content,
+        content,
         date,
         media,
     }

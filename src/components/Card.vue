@@ -29,27 +29,26 @@ const playVideo = computed(() => {
 
 <template>
   <div class="wall-item">
-    <div class="card mx-2 my-3" :class="post.pinned?'pinned':''">
+    <div class="card mx-2 my-3" :class="post.pinned ? 'pinned' : ''">
       <div v-if="post.author" class="card-header d-flex align-items-center">
         <div v-if="post.author?.avatar" class="flex-shrink-0">
-          <img :src="post.author.avatar" class="rounded-circle me-2" />
+          <img :src="post.author.avatar" class="me-2 avatar" />
         </div>
-        <p class="flex-grow-1 m-0">
-        <a v-if="post.author.url" :href="post.author.url" target="_blank" v-dompurify-html="post.author.name" class="text-body"></a>
-        <span v-else v-dompurify-html="post.author.name"></span></p>
+        <a :href="post.author.url || post.url" target="_blank" v-dompurify-html="post.author.name"
+          class="flex-grow-1 m-0 text-body"></a>
         <slot name="topleft"></slot>
       </div>
       <div class="card-body">
         <div v-if="config.showMedia" class="wall-media mb-3">
-        <img v-if="media?.type === 'image'" :src="media.url" :alt="media.alt">
-        <video v-else-if="media?.type === 'video'" ref="videoElement"
-          muted loop :autoplay="playVideo" :poster="media.preview" :alt="media.alt" >
-          <source v-if="playVideo" :src="media.url">
-        </video>
+          <img v-if="media?.type === 'image'" :src="media.url" :alt="media.alt">
+          <video v-else-if="media?.type === 'video'" ref="videoElement" muted loop :autoplay="playVideo"
+            :poster="media.preview" :alt="media.alt">
+            <source v-if="playVideo" :src="media.url">
+          </video>
         </div>
         <p v-if="config.showText" class="card-text" v-dompurify-html="post.content"></p>
-        <p class="card-text text-end text-break"><a :href="post.url" target="_blank"
-              alt="${post.date}" class="text-decoration-none text-muted"><small>{{ timeAgo }}</small></a></p>
+        <p class="card-text text-end text-break"><a :href="post.url" target="_blank" alt="${post.date}"
+            class="text-decoration-none text-muted"><small>{{ timeAgo }}</small></a></p>
       </div>
     </div>
   </div>
@@ -68,21 +67,27 @@ const playVideo = computed(() => {
   text-decoration: none;
 }
 
-.wall-item .card-header img {
+.wall-item img.avatar {
   width: 2em;
   height: 2em;
+  border-radius: 50%;
 }
 
-.wall-media {
+.wall-item img.emoji {
+  height: 1em;
+  width: 1em;
+  object-fit: contain;
+  vertical-align: middle;
+  font-size: inherit;
 }
 
-.wall-media img, .wall-media video {
+.wall-media img,
+.wall-media video {
   width: 100%;
   max-height: 1wh;
   object-fit: cover;
   border-radius: 5px;
 }
-
 
 .wall-item .invisible {
   font-size: 0 !important;
