@@ -19,7 +19,7 @@ const config = computed({
 
 const formServers = computed({
   get: () => config.value.servers.join(" "),
-  set: (value) => config.value.servers = (value || "").split(" ").filter(isServer),
+  set: (value) => config.value.servers = (value || "").replace(/https?:\/\//ig, "").split(/[, ]+/).filter(isServer),
 });
 
 const tagPattern = /#?([\p{Letter}\p{Number}\p{Mark}\p{Connector_Punctuation}_]+)/igu
