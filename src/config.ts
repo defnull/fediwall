@@ -6,11 +6,11 @@ import { type Config } from '@/types';
 
 export const siteConfigParam = "load"
 let siteConfig: Config | undefined;
-let siteConfigSource: string|undefined = undefined;
+let siteConfigSource: string | undefined = undefined;
 
 const themes = ["dark", "light", "auto"];
-const boolYes = ["", "y", "yes", "true"];
-const boolNo = ["n", "no", "false"];
+const boolYes = ["yes", "", "y", "true"];
+const boolNo = ["no", "n", "false"];
 
 const fromBool = (value: string): boolean | undefined => {
     return boolYes.includes(value.toLowerCase())
@@ -77,7 +77,7 @@ const parameterDefinitions: Array<ParamDef> = [
 
     // Filter options
     {
-        names: ["no"],
+        names: ["hide"],
         from: (config: Partial<Config>, value: string) => {
             const flags = value.split(",")
             config.hideSensitive = flags.includes("nsfw")
@@ -100,7 +100,7 @@ const parameterDefinitions: Array<ParamDef> = [
         to: (config: Config) => (config.languages || []).join(","),
     },
     {
-        names: ["block"],
+        names: ["ban"],
         from: (config: Partial<Config>, value: string) => config.badWords = value.split(","),
         to: (config: Config) => (config.badWords || []).join(","),
     },
@@ -131,24 +131,17 @@ const parameterDefinitions: Array<ParamDef> = [
         to: (config: Config) => toBool(config.showInfobar),
     },
     {
-        // yes = text+media
-        // no = text
-        // notext = media
-        names: ["media"],
-        from: (config: Partial<Config>, value: string) => {
-            config.showText = ["yes", "no"].includes(value.trim().toLocaleLowerCase())
-            config.showMedia = ["yes", "notext"].includes(value.trim().toLocaleLowerCase())
-        },
-        to: (config: Config) => {
-            if (!config.showText)
-                return "notext"
-            if (!config.showMedia)
-                return "no"
-            return "yes"
-        },
+        names: ["text"],
+        from: (config: Partial<Config>, value: string) => config.showText = fromBool(value),
+        to: (config: Config) => toBool(config.showText),
     },
     {
-        names: ["autoplay", "play"],
+        names: ["media"],
+        from: (config: Partial<Config>, value: string) => config.showMedia = fromBool(value),
+        to: (config: Config) => toBool(config.showMedia),
+    },
+    {
+        names: ["autoplay"],
         from: (config: Partial<Config>, value: string) => config.playVideos = fromBool(value),
         to: (config: Config) => toBool(config.playVideos),
     }]
@@ -201,7 +194,6 @@ export function toQuery(config: Config, userConfig?: string): string {
         .replace(/%2F/g, '/') // save in query strings
         .replace(/%2C/g, ',') // save in query strings
         .replace(/%40/g, '@') // save in query strings
-        .replace(/=(&|$)/g, '') // a=&b= -> a&b
 }
 
 export function isTag(tag: any) {
@@ -258,7 +250,7 @@ export function sanatizeConfig(config: any): Config {
 
     result.languages = arrayUnique((Array.isArray(config.languages) ? [...config.languages] : [...fallback.languages]).filter(isLanguage));
     result.badWords = arrayUnique((Array.isArray(config.badWords) ? [...config.badWords] : [...fallback.badWords]).filter(isTag));
-    result.hideSensitive = boolOr(config.hideNsfw, fallback.hideSensitive)
+    result.hideSensitive = boolOr(config.hideSensitive, fallback.hideSensitive)
     result.hideBoosts = boolOr(config.hideBoosts, fallback.hideBoosts)
     result.hideBots = boolOr(config.hideBots, fallback.hideBots)
     result.hideReplies = boolOr(config.hideReplies, fallback.hideReplies)
@@ -272,10 +264,6 @@ export function sanatizeConfig(config: any): Config {
     result.showText = boolOr(config.showText, fallback.showText)
     result.showMedia = boolOr(config.showMedia, fallback.showMedia)
     result.playVideos = boolOr(config.playVideos, fallback.playVideos)
-    if (result.playVideos)
-        result.showMedia = true
-    if (!result.showMedia)
-        result.playVideos = false
     if (!result.showMedia && !result.showText)
         result.showText = true
 
@@ -288,8 +276,8 @@ export async function loadConfig() {
 
     const loadJson = async (url: string) => {
         try {
-            const rs = await fetch(url, {cache: "reload", })
-            if(!rs.ok) throw new Error(`HTTP error! Status: ${rs.status}`);
+            const rs = await fetch(url, { cache: "reload", })
+            if (!rs.ok) throw new Error(`HTTP error! Status: ${rs.status}`);
             siteConfig = sanatizeConfig(await rs.json() || {});
             siteConfigSource = url
         } catch (e) {

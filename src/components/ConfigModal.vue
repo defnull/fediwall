@@ -70,17 +70,7 @@ const formMediaMedia = computed({
     config.value.showMedia = value
     if (!value) {
       config.value.showText = true
-      config.value.playVideos = false
     }
-  }
-});
-
-const formAutoplay = computed({
-  get: () => config.value.playVideos,
-  set: (value) => {
-    config.value.playVideos = value
-    if (value)
-      config.value.showMedia = true
   }
 });
 
@@ -304,7 +294,7 @@ const onSubmit = () => {
                       </label>
                     </div>
                     <div class="form-check ms-3">
-                      <input class="form-check-input" type="checkbox" id="edit-autoplay" v-model="formAutoplay">
+                      <input class="form-check-input" type="checkbox" id="edit-autoplay" v-model="config.playVideos" :disabled="!formMediaMedia">
                       <label class="form-check-label" for="edit-autoplay">
                         Autoplay videos (muted)
                       </label>
