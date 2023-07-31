@@ -189,12 +189,12 @@ const privacyLink = computed(() => {
 
 <template>
   <div id="page">
-    <span v-show="updateInProgress" class="position-fixed bottom-0 start-0 m-1 opacity-25 text-muted">♥</span>
-    <header v-if="config?.showInfobar">
-      <InfoBar :config="config" class="secret-hover">
-        <small class="text-secondary secret float-end">
-          [<a href="#" class="text-secondary" data-bs-toggle="modal" data-bs-target="#configModal">edit</a>]
-        </small>
+    <icon v-show="updateInProgress" icon="spinner" spin class="position-fixed bottom-0 start-0 m-1 opacity-25 text-muted" />
+    <header v-if="config?.showInfobar" class="secret-hover">
+      <InfoBar :config="config">
+        <span class="text-muted float-end opacity-50 secret">
+          <icon icon="gear" style="cursor: pointer" title="Edit Settings" data-bs-toggle="modal" data-bs-target="#configModal" />
+        </span>
       </InfoBar>
     </header>
 
@@ -269,7 +269,7 @@ body {
 }
 
 #page header {
-  padding: .5em 1em;
+  padding: .5em .5em;
   font-size: 1.2em;
   display: block;
   width: 100%;

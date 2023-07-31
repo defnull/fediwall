@@ -24,10 +24,17 @@ import { createApp } from 'vue'
 import { VueMasonryPlugin } from 'vue-masonry';
 import VueDOMPurifyHTML from 'vue-dompurify-html';
 
-import App from '@/App.vue'
+// Register fontawesome icons
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faGear, faSpinner } from '@fortawesome/free-solid-svg-icons'
+library.add(faGear, faSpinner)
 
+import App from '@/App.vue'
 const app = createApp(App)
+
 app.use(VueMasonryPlugin)
+app.component("icon", FontAwesomeIcon)
 app.use(VueDOMPurifyHTML, {
     defaults: {
         FORBID_TAGS: ['style'],
