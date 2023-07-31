@@ -75,6 +75,12 @@ export async function fetchPosts(cfg: Config): Promise<Post[]> {
             posts.unshift(post)
     }
 
+    const fixLocalAcct = (domain: string, status: MastodonStatus): MastodonStatus => {
+        if (!status.account.acct.includes('@'))
+            status.account.acct += "@" + domain
+        return status
+    }
+
     // Be nice and not overwhelm servers with parallel requests.
     // Run tasks for the same domain in sequence instead.
     const groupedTasks = Object.entries(domainTasks)
@@ -84,6 +90,7 @@ export async function fetchPosts(cfg: Config): Promise<Post[]> {
                     try {
                         (await task())
                             .filter(status => filterStatus(cfg, status))
+                            .map(status => fixLocalAcct(domain, status))
                             .map(status => statusToWallPost(cfg, status))
                             .forEach(addOrRepacePost)
                     } catch (err) {
@@ -238,6 +245,7 @@ const statusToWallPost = (cfg: Config, status: MastodonStatus): Post => {
     const name = status.account.display_name
         ? replaceEmojis(status.account.display_name, status.account.emojis)
         : status.account.username
+    const profile = status.account.acct
     const content = replaceEmojis(status.content, status.emojis)
 
     const media = status.media_attachments?.map((m): PostMedia | undefined => {
@@ -258,6 +266,7 @@ const statusToWallPost = (cfg: Config, status: MastodonStatus): Post => {
         url: status.url || status.uri,
         author: {
             name,
+            profile,
             url: status.account.url,
             avatar: status.account.avatar,
         },

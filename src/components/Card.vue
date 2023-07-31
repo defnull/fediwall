@@ -34,8 +34,10 @@ const playVideo = computed(() => {
         <div v-if="post.author?.avatar" class="flex-shrink-0">
           <img :src="post.author.avatar" class="me-2 avatar" />
         </div>
-        <a :href="post.author.url || post.url" target="_blank" v-dompurify-html="post.author.name"
-          class="flex-grow-1 m-0 text-body"></a>
+        <a :href="post.author.url || post.url" target="_blank" class="text-body flex-grow-1 m-0 avatarlink">
+          <div v-dompurify-html="post.author.name" class="displayname"></div>
+          <div v-dompurify-html="post.author.profile" class="profile"></div>
+        </a>
         <slot name="topleft"></slot>
       </div>
       <div class="card-body">
@@ -71,6 +73,18 @@ const playVideo = computed(() => {
   width: 2em;
   height: 2em;
   border-radius: 50%;
+}
+
+.wall-item a.avatarlink {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.wall-item div.profile {
+  margin-top: -.3em;
+  font-size: .85em;
+  opacity: .5;
 }
 
 .wall-item img.emoji {

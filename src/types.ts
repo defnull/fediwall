@@ -34,6 +34,7 @@ export type Post = {
 
     author?: {
         name: string;
+        profile: string;
         avatar?: string;
         url?: string;
     };
