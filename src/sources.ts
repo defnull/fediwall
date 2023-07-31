@@ -17,9 +17,12 @@ export async function fetchPosts(cfg: Config): Promise<Post[]> {
 
     // Load tags from all servers
     for (const domain of cfg.servers) {
+        const query: Record<string, any> = { limit: cfg.limit }
+        if(cfg.badWords.length) query.none = cfg.badWords.join(",")
+        if(!cfg.showText) query.only_media = "True"
         for (const tag of cfg.tags) {
             addTask(domain, async () => {
-                return await fetchJson(domain, `api/v1/timelines/tag/${encodeURIComponent(tag)}`, { limit: cfg.limit.toString() })
+                return await fetchJson(domain, `api/v1/timelines/tag/${encodeURIComponent(tag)}`, query)
             })
         }
     }
@@ -38,6 +41,7 @@ export async function fetchPosts(cfg: Config): Promise<Post[]> {
                 const query: Record<string, any> = { limit: cfg.limit }
                 if (cfg.hideReplies) query.exclude_replies = "True"
                 if (cfg.hideBoosts) query.exclude_reblogs = "True"
+                if (!cfg.showText) query.only_media = "True"
                 return await fetchJson(domain, `api/v1/accounts/${encodeURIComponent(localUser.id)}/statuses`, query)
             })
         }
@@ -59,6 +63,7 @@ export async function fetchPosts(cfg: Config): Promise<Post[]> {
             const query: Record<string, any> = { limit: cfg.limit }
             if (!cfg.loadPublic) query.remote = "True"
             if (!cfg.loadFederated) query.local = "True"
+            if (!cfg.showText) query.only_media = "True"
             addTask(domain, async () => {
                 return await fetchJson(domain, "api/v1/timelines/public", query)
             })
