@@ -207,13 +207,13 @@ const onSubmit = () => {
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" id="edit-nsfw" v-model="config.hideSensitive">
                       <label class="form-check-label" for="edit-nsfw">
-                        Hide sensitive posts (e.g. content warnings)
+                        Hide sensitive content
                       </label>
                     </div>
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" id="edit-bots" v-model="config.hideBots">
                       <label class="form-check-label" for="edit-bots">
-                        Hide automated posts or bot accounts
+                        Hide bot accounts
                       </label>
                     </div>
                     <div class="form-check">
@@ -290,13 +290,13 @@ const onSubmit = () => {
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" id="edit-media" v-model="formMediaMedia">
                       <label class="form-check-label" for="edit-media">
-                        Show embedded media
+                        Show attached media
                       </label>
                     </div>
                     <div class="form-check ms-3">
                       <input class="form-check-input" type="checkbox" id="edit-autoplay" v-model="config.playVideos" :disabled="!formMediaMedia">
                       <label class="form-check-label" for="edit-autoplay">
-                        Autoplay videos (muted)
+                        Play videos (muted)
                       </label>
                     </div>
                   </div>
@@ -315,10 +315,10 @@ const onSubmit = () => {
                 </div>
 
                 <div class="mb-3">
-                  <label for="edit-limit" class="form-label">Results per source</label>
+                  <label for="edit-limit" class="form-label">Results per query</label>
                   <div class="ms-5">
                     <input type="text" class="form-control" name="edit-limit" v-model.lazy="formLimit">
-                    <div class="form-text">Limit number of results per hashtag, account or timeline.</div>
+                    <div class="form-text">Limit number of results per API request. Increase only if your filters hide too many posts.</div>
                   </div>
                 </div>
 
