@@ -22,6 +22,10 @@ const formServers = computed({
   set: (value) => config.value.servers = (value || "").replace(/https?:\/\//ig, "").split(/[, ]+/).filter(isServer),
 });
 
+const hasServers = computed(()=> {
+  return config.value.servers.length > 0
+})
+
 const tagPattern = /#?([\p{Letter}\p{Number}\p{Mark}\p{Connector_Punctuation}_]+)/igu
 const formTags = computed({
   get: () => config.value.tags.map(t => '#' + t).join(" "),
@@ -148,18 +152,43 @@ const onSubmit = () => {
                 <div class="mb-3">
                   <label for="edit-server" class="form-label">Servers:</label>
                   <div class="ms-5">
-                    <input type="text" class="form-control" id="edit-server" v-model.lazy="formServers">
+                    <input type="text" class="form-control" id="edit-server" placeholder="" v-model.lazy="formServers">
                     <div class="form-text"><span title="Mastodon or compatible"
                         style="border-bottom: 1px dotted; cursor: help;">Mastodon</span> server domains to query for
-                      content.</div>
+                      hashtags or timelines.</div>
                   </div>
                 </div>
 
                 <div class="mb-3">
                   <label for="edit-tags" class="form-label">Hashtags:</label>
                   <div class="ms-5">
-                    <input type="text" class="form-control" id="edit-tags" v-model.lazy="formTags">
-                    <div class="form-text">Show public posts matching these hashtags.
+                    <input type="text" class="form-control" id="edit-tags" v-model.lazy="formTags" :disabled="!hasServers">
+                    <div class="form-text">Show public posts matching any of these hashtags.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <h6>Public timelines:</h6>
+
+                  <div class="ms-5">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="edit-trends" v-model="config.loadTrends" :disabled="!hasServers">
+                      <label class="form-check-label" for="edit-trends">
+                        Show all trending posts
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="edit-local" v-model="config.loadPublic" :disabled="!hasServers">
+                      <label class="form-check-label" for="edit-local">
+                        Show all local posts
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="edit-federated" v-model="config.loadFederated" :disabled="!hasServers">
+                      <label class="form-check-label" for="edit-federated">
+                        Show all federated posts
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -168,35 +197,11 @@ const onSubmit = () => {
                   <label for="edit-accounts" class="form-label">Accounts:</label>
                   <div class="ms-5">
                     <input type="text" class="form-control" id="edit-accounts" v-model.lazy="formAccounts">
-                    <div class="form-text">Show all public posts or boosts from these profiles.
+                    <div class="form-text">Show all public posts or boosts from these profiles (ignoring hashtags).
                     </div>
                   </div>
                 </div>
 
-                <div class="mb-3">
-                  <h6>Public server timelines:</h6>
-
-                  <div class="ms-5">
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="edit-trends" v-model="config.loadTrends">
-                      <label class="form-check-label" for="edit-trends">
-                        Show all trending posts
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="edit-local" v-model="config.loadPublic">
-                      <label class="form-check-label" for="edit-local">
-                        Show all local posts
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="edit-federated" v-model="config.loadFederated">
-                      <label class="form-check-label" for="edit-federated">
-                        Show all federated posts
-                      </label>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               <div class="tab-pane" id="ctab-filter" aria-labelledby="btab-filter" role="tabpanel">
