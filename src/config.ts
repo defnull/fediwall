@@ -75,7 +75,12 @@ const parameterDefinitions: Array<ParamDef> = [
         },
     },
 
-    // Filter options
+    // Content filters
+    {
+        names: ["lang", "l"],
+        from: (config: Partial<Config>, value: string) => config.languages = value.split(","),
+        to: (config: Config) => (config.languages || []).join(","),
+    },
     {
         names: ["hide"],
         from: (config: Partial<Config>, value: string) => {
@@ -95,26 +100,23 @@ const parameterDefinitions: Array<ParamDef> = [
         },
     },
     {
-        names: ["lang", "l"],
-        from: (config: Partial<Config>, value: string) => config.languages = value.split(","),
-        to: (config: Config) => (config.languages || []).join(","),
-    },
-    {
         names: ["ban"],
         from: (config: Partial<Config>, value: string) => config.badWords = value.split(","),
         to: (config: Config) => (config.badWords || []).join(","),
     },
+    {
+        names: ["text"],
+        from: (config: Partial<Config>, value: string) => config.showText = fromBool(value),
+        to: (config: Config) => toBool(config.showText),
+    },
+    {
+        names: ["media"],
+        from: (config: Partial<Config>, value: string) => config.showMedia = fromBool(value),
+        to: (config: Config) => toBool(config.showMedia),
+    },
 
-    {
-        names: ["limit"],
-        from: (config: Partial<Config>, value: string) => config.limit = parseInt(value),
-        to: (config: Config) => config.limit.toString(),
-    },
-    {
-        names: ["interval"],
-        from: (config: Partial<Config>, value: string) => config.interval = parseInt(value),
-        to: (config: Config) => config.interval.toString(),
-    },
+    // Visuals
+
     {
         names: ["title"],
         from: (config: Partial<Config>, value: string) => config.title = value.trim(),
@@ -131,20 +133,24 @@ const parameterDefinitions: Array<ParamDef> = [
         to: (config: Config) => toBool(config.showInfobar),
     },
     {
-        names: ["text"],
-        from: (config: Partial<Config>, value: string) => config.showText = fromBool(value),
-        to: (config: Config) => toBool(config.showText),
-    },
-    {
-        names: ["media"],
-        from: (config: Partial<Config>, value: string) => config.showMedia = fromBool(value),
-        to: (config: Config) => toBool(config.showMedia),
-    },
-    {
         names: ["autoplay"],
         from: (config: Partial<Config>, value: string) => config.playVideos = fromBool(value),
         to: (config: Config) => toBool(config.playVideos),
-    }]
+    },
+
+    // Other settings
+
+    {
+        names: ["limit"],
+        from: (config: Partial<Config>, value: string) => config.limit = parseInt(value),
+        to: (config: Config) => config.limit.toString(),
+    },
+    {
+        names: ["interval"],
+        from: (config: Partial<Config>, value: string) => config.interval = parseInt(value),
+        to: (config: Config) => config.interval.toString(),
+    },
+]
 
 if (import.meta.env.DEV) {
     parameterDefinitions.flatMap(p => p.names).filter((v, i, a) => {
