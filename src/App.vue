@@ -59,7 +59,7 @@ const actualTheme = computed(() => {
 })
 watch(actualTheme, () => {
   document.body!.parentElement!.dataset.bsTheme = actualTheme.value
-})
+}, {immediate: true})
 
 // Update page title
 watch(() => config.value?.title, () => document.title = config.value?.title || fallbackConfig.title)
