@@ -1,6 +1,6 @@
 {
   "name": "fediwall",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Display a wall of recent mastodon posts",
   "homepage": "https://github.com/defnull/fediwall#readme",
   "bugs": "https://github.com/defnull/fediwall/issues",
