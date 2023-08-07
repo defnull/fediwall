@@ -124,7 +124,7 @@ async function getLocalUser(user: string, domain: string): Promise<any> {
 
     if (!Object.hasOwnProperty.call(accountCache, key)) {
         try {
-            accountCache[key] = (await fetchJson(domain, "v1/accounts/lookup", { acct: user })) as MastodonAccount
+            accountCache[key] = (await fetchJson(domain, "api/v1/accounts/lookup", { acct: user })) as MastodonAccount
         } catch (e) {
             if ((e as any).status === 404)
                 accountCache[key] = null;
