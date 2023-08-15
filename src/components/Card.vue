@@ -42,9 +42,9 @@ const playVideo = computed(() => {
       </div>
       <div class="card-body">
         <div v-if="config.showMedia" class="wall-media mb-3">
-          <img v-if="media?.type === 'image'" :src="media.url" :alt="media.alt">
+          <img v-if="media?.type === 'image'" :src="media.url" :alt="media.alt" :title="media.alt">
           <video v-else-if="media?.type === 'video'" ref="videoElement" muted loop :autoplay="playVideo"
-            :poster="media.preview" :alt="media.alt">
+            :poster="media.preview" :alt="media.alt" :title="media.alt">
             <source v-if="playVideo" :src="media.url">
           </video>
         </div>
