@@ -31,10 +31,10 @@ const playVideo = computed(() => {
   <div class="wall-item">
     <div class="card mx-2 my-3" :class="post.pinned ? 'pinned' : ''">
       <div v-if="post.author" class="card-header d-flex align-items-center">
-        <div v-if="post.author?.avatar" class="flex-shrink-0">
+        <a v-if="post.author?.avatar" :href="post.url" target="_blank" class="flex-shrink-0">
           <img :src="post.author.avatar" class="me-2 avatar" />
-        </div>
-        <a :href="post.author.url || post.url" target="_blank" class="text-body flex-grow-1 m-0 avatarlink">
+        </a>
+        <a :href="post.url" target="_blank" class="text-body flex-grow-1 m-0 avatarlink">
           <div v-dompurify-html="post.author.name" class="displayname"></div>
           <div v-dompurify-html="post.author.profile" class="profile"></div>
         </a>
