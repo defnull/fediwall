@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, onUpdated, ref, watch } from 'vue';
+import { computed, inject, onBeforeUnmount, onMounted, onUpdated, provide, ref, watch } from 'vue';
 import { createFilterWrapper, debounceFilter, useDocumentVisibility, usePreferredDark, useWindowSize } from '@vueuse/core'
 
 import { type Config, type Post } from '@/types';
@@ -42,12 +42,14 @@ watch(visibilityState, () => {
 })
 
 // Fix Masonry layout on updates, config changes or window resize events
-const fixLayout = inject('redrawVueMasonry') as () => void
-const windowSize = useWindowSize()
-const layoutDebounce = debounceFilter(500, { maxWait: 500 })
-const doFixLayoput = createFilterWrapper(layoutDebounce, () => fixLayout())
-watch([windowSize.width, config, allPosts], doFixLayoput, { deep: true })
-onUpdated(doFixLayoput)
+const fixLayoutNow = inject('redrawVueMasonry') as () => void
+const fixLayout = createFilterWrapper(debounceFilter(500, { maxWait: 500 }), ()=>{
+  console.debug("Updating masonry layout")
+  fixLayoutNow()
+})
+provide("fixLayout", fixLayout)
+onUpdated(fixLayout)
+watch([useWindowSize().width, config, allPosts], fixLayout, { deep: true })
 
 // Watch for a theme changes
 const isDarkPrefered = usePreferredDark()

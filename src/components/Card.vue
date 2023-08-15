@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useElementVisibility, useIntervalFn } from '@vueuse/core'
-import { computed, ref } from 'vue';
+import { computed, inject, ref } from 'vue';
 import moment from 'moment'
 import { type Config, type Post } from '@/types';
 
@@ -25,6 +25,8 @@ const playVideo = computed(() => {
   return media.value?.type === "video" && props.config.playVideos && videoIsVisible.value
 })
 
+const onMediaLoad = inject('fixLayout', () => undefined)
+
 </script>
 
 <template>
@@ -42,9 +44,9 @@ const playVideo = computed(() => {
       </div>
       <div class="card-body">
         <div v-if="config.showMedia" class="wall-media mb-3">
-          <img v-if="media?.type === 'image'" :src="media.url" :alt="media.alt" :title="media.alt">
+          <img v-if="media?.type === 'image'" :src="media.url" :alt="media.alt" :title="media.alt" @load="onMediaLoad">
           <video v-else-if="media?.type === 'video'" ref="videoElement" muted loop :autoplay="playVideo"
-            :poster="media.preview" :alt="media.alt" :title="media.alt">
+            :poster="media.preview" :alt="media.alt" :title="media.alt" @loadedmetadata="onMediaLoad">
             <source v-if="playVideo" :src="media.url">
           </video>
         </div>
