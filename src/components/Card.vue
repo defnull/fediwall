@@ -19,10 +19,10 @@ const media = computed(() => {
   return props.post.media[0]
 })
 
-const videoElement = ref(null)
-const videoIsVisible = useElementVisibility(videoElement)
+const mediaElement = ref(null)
+const mediaIsVisible = useElementVisibility(mediaElement)
 const playVideo = computed(() => {
-  return media.value?.type === "video" && props.config.playVideos && videoIsVisible.value
+  return media.value?.type === "video" && props.config.playVideos && mediaIsVisible.value
 })
 
 const onMediaLoad = inject('fixLayout', () => undefined)
@@ -43,9 +43,9 @@ const onMediaLoad = inject('fixLayout', () => undefined)
         <slot name="topleft"></slot>
       </div>
       <div class="card-body">
-        <div v-if="config.showMedia" class="wall-media mb-3">
+        <div v-if="config.showMedia" class="wall-media mb-3" ref="mediaElement">
           <img v-if="media?.type === 'image'" :src="media.url" :alt="media.alt" :title="media.alt" @load="onMediaLoad">
-          <video v-else-if="media?.type === 'video'" ref="videoElement" muted loop :autoplay="playVideo"
+          <video v-else-if="media?.type === 'video'" muted loop :autoplay="playVideo"
             :poster="media.preview" :alt="media.alt" :title="media.alt" @loadedmetadata="onMediaLoad">
             <source v-if="playVideo" :src="media.url">
           </video>
