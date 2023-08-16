@@ -43,7 +43,7 @@ watch(visibilityState, () => {
 
 // Fix Masonry layout on updates, config changes or window resize events
 const fixLayoutNow = inject('redrawVueMasonry') as () => void
-const fixLayout = createFilterWrapper(debounceFilter(500, { maxWait: 500 }), ()=>{
+const fixLayout = createFilterWrapper(debounceFilter(500, { maxWait: 500 }), () => {
   console.debug("Updating masonry layout")
   fixLayoutNow()
 })
@@ -61,7 +61,7 @@ const actualTheme = computed(() => {
 })
 watch(actualTheme, () => {
   document.body!.parentElement!.dataset.bsTheme = actualTheme.value
-}, {immediate: true})
+}, { immediate: true })
 
 // Update page title
 watch(() => config.value?.title, () => document.title = config.value?.title || fallbackConfig.title)
@@ -191,11 +191,13 @@ const privacyLink = computed(() => {
 
 <template>
   <div id="page">
-    <icon v-show="updateInProgress" icon="spinner" spin class="position-fixed bottom-0 start-0 m-1 opacity-25 text-muted" />
+    <icon v-show="updateInProgress" icon="spinner" spin
+      class="position-fixed bottom-0 start-0 m-1 opacity-25 text-muted" />
     <header v-if="config?.showInfobar" class="secret-hover">
       <InfoBar :config="config">
         <span class="text-muted float-end opacity-50 secret">
-          <icon icon="gear" style="cursor: pointer" title="Edit Settings" data-bs-toggle="modal" data-bs-target="#configModal" />
+          <icon icon="gear" style="cursor: pointer" title="Edit Settings" data-bs-toggle="modal"
+            data-bs-target="#configModal" />
         </span>
       </InfoBar>
     </header>
