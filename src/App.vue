@@ -102,7 +102,7 @@ const stopUpdates = () => {
 
 /**
  * Trigger a wall update.
- * 
+ *
  * Does nothing if there is an update running already.
  */
 async function updateWall() {
@@ -203,7 +203,7 @@ const privacyLink = computed(() => {
     </header>
 
     <main>
-      <div v-if="config === undefined">Initialiting ...</div>
+      <div v-if="config === undefined">Initializing ...</div>
       <div v-else-if="filteredPosts.length === 0 && updateInProgress">Loading first posts ...</div>
       <div v-else-if="filteredPosts.length === 0">Nothing there yet ...</div>
       <div v-else v-masonry transition-duration="1s" item-selector=".wall-item" percent-position="true" id="wall">
