@@ -135,7 +135,7 @@ const onSubmit = () => {
           </li>
           <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" id="btab-appearance" data-bs-target="#ctab-appearance"
-              type="button" role="tab" aria-controls="ctab-appearance" aria-selected="false">Apperance</button>
+              type="button" role="tab" aria-controls="ctab-appearance" aria-selected="false">Appearance</button>
           </li>
           <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" id="btab-advanced" data-bs-target="#ctab-advanced" type="button"
