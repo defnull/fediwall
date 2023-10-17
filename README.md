@@ -62,9 +62,9 @@ During development, `npm run dev` will provide a local development server that a
 
 ## F.A.Q.
 
-## I'm a Mastodon admin and I don't want you hitting my server!
+### I'm a Mastodon admin and I don't want you hitting my server!
 
-That's a shame, but we know some admins and some communities prefer not to make content available, or have other concerns. Fediwall tries to be very polite, and it keeps within the API request limits. The users on your instance can also use their account privacy settings to limit how their posts are shared, so it does not have to be done for the whole server.
+Some admins and some communities prefer not to make content available, or have other concerns. Fediwall keeps within the API request limits. The users on your instance can also use their account privacy settings to limit how their posts are shared, so it does not have to be done for the whole server.
 
 Fediwall uses the unauthenticated timeline API to fetch hashtagged posts. You can turn off this setting in your instance preferences (uncheck "Server settings -> Discovery -> Allow unauthenticated access to public timelines"), and Fediwall will no longer be able to retrieve the posts.
 
@@ -87,6 +87,10 @@ Direct API access to an individual instance is not always necessary. Content sho
 Choose a source server with active moderation to reduce the risk of troll-, spam-, or nsfw-posts showing up. If you see something you do not want, you can manually hide individual posts or entire account in the UI.
 
 To play it extra-safe, stop following hashtags, and follow a bunch of trusted event accounts instead. Those accounts would then manually boost posts and only allow approved content to show up on the wall.
+
+### I want to make changes to the look-and-feel and UI
+
+The range of built-in customisations that are available are intentionally simple. If you want to modify the CSS or add other elements, the best option is to fork and modify the project, and self-host.
 
 ## Special thanks
 
