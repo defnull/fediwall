@@ -1,9 +1,6 @@
 {
-    "server": "mastodon.social",
+    "servers": ["mastodon.social"],
     "tags": ["foss", "cats", "dogs", "fediwall"],
     "accounts": ["defnull@chaos.social"],
-    "limit": 20,
-    "interval": 10,
-    "theme": "dark",
-    "info": "top"
+    "theme": "dark"
 }
