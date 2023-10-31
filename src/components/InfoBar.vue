@@ -27,9 +27,6 @@ defineProps<{
                 <template v-else-if="index == config.accounts.length - 2"> or </template>
             </template>
         </template>
-
-        <slot></slot>
-
     </div>
 </template>
 
