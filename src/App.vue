@@ -260,7 +260,7 @@ body {
 }
 
 #page main {
-  margin: 1rem 2rem;
+  padding: 1rem 1rem;
 }
 
 .secret-hover .secret {
@@ -328,13 +328,13 @@ body {
 
 @media (max-width: 80rem) {
   .wall-item {
-    width: 33%;
+    width: 33.3%;
   }
 }
 
 @media (max-width: 60rem) {
   #page main {
-    padding: 1rem .5rem;
+    padding: .5rem .5rem;
   }
 
   .wall-item {
