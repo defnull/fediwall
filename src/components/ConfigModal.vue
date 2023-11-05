@@ -127,7 +127,7 @@ const onSubmit = () => {
         <ul class="nav nav-tabs nav-fill mt-3" id="cfg-tabs" role="tablist">
           <li class="nav-item" role="presentation">
             <button class="nav-link active" data-bs-toggle="tab" id="btab-content" data-bs-target="#ctab-content"
-              type="button" role="tab" aria-controls="ctab-content" aria-selected="true">Sources</button>
+              type="button" role="tab" aria-controls="ctab-content" aria-selected="true">Content</button>
           </li>
           <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" id="btab-filter" data-bs-target="#ctab-filter" type="button"
@@ -150,9 +150,9 @@ const onSubmit = () => {
               <div class="tab-pane active" id="ctab-content" aria-labelledby="btab-content" role="tabpanel">
 
                 <div class="mb-3">
-                  <label for="edit-server" class="form-label">Servers:</label>
+                  <label for="edit-server" class="form-label">Sources:</label>
                   <div class="ms-5">
-                    <input type="text" class="form-control" id="edit-server" placeholder="" v-model.lazy="formServers">
+                    <input type="text" class="form-control" id="edit-server" placeholder="example.social" v-model.lazy="formServers">
                     <div class="form-text"><span title="Mastodon or compatible"
                         style="border-bottom: 1px dotted; cursor: help;">Mastodon</span> server domains to query for
                       hashtags or timelines.</div>
@@ -163,8 +163,7 @@ const onSubmit = () => {
                   <label for="edit-tags" class="form-label">Hashtags:</label>
                   <div class="ms-5">
                     <input type="text" class="form-control" id="edit-tags" v-model.lazy="formTags" :disabled="!hasServers">
-                    <div class="form-text">Show public posts matching any of these hashtags.
-                    </div>
+                    <div class="form-text">Search for public posts matching any of these hashtags.</div>
                   </div>
                 </div>
 
@@ -181,7 +180,7 @@ const onSubmit = () => {
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" id="edit-local" v-model="config.loadPublic" :disabled="!hasServers">
                       <label class="form-check-label" for="edit-local">
-                        Show all local posts
+                        Show all source-local posts
                       </label>
                     </div>
                     <div class="form-check">
@@ -194,10 +193,10 @@ const onSubmit = () => {
                 </div>
 
                 <div class="mb-3">
-                  <label for="edit-accounts" class="form-label">Accounts:</label>
+                  <label for="edit-accounts" class="form-label">Profiles:</label>
                   <div class="ms-5">
                     <input type="text" class="form-control" id="edit-accounts" v-model.lazy="formAccounts">
-                    <div class="form-text">Show all public posts or boosts from these profiles (ignoring hashtags).
+                    <div class="form-text">Show all public posts or boosts from these profiles.
                     </div>
                   </div>
                 </div>
@@ -301,7 +300,7 @@ const onSubmit = () => {
                     <div class="form-check ms-3">
                       <input class="form-check-input" type="checkbox" id="edit-autoplay" v-model="config.playVideos" :disabled="!formMediaMedia">
                       <label class="form-check-label" for="edit-autoplay">
-                        Play videos (muted)
+                        Autoplay videos (muted)
                       </label>
                     </div>
                   </div>
