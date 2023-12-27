@@ -89,7 +89,7 @@ const restartUpdates = () => {
   }, interval * 1000)
 
   // Trigger update immediately if new interval allows it
-  if (lastUpdate + interval < new Date().getTime())
+  if (lastUpdate + (interval * 1000) < Date.now())
     updateWall()
 }
 
