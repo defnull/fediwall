@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, onMounted, onUpdated, provide, ref, watch } from 'vue';
-import { createFilterWrapper, debounceFilter, useDocumentVisibility, usePreferredDark, useWindowSize } from '@vueuse/core'
+import { createFilterWrapper, debounceFilter, useDocumentVisibility, usePreferredDark, useWindowScroll, useWindowSize } from '@vueuse/core'
 
 import { type Config, type Post } from '@/types';
 import { loadConfig } from '@/config';
@@ -32,13 +32,23 @@ onBeforeUnmount(() => {
   stopUpdates()
 })
 
-// Pause updates while tab/window is hidden
+// Pause updates while tab/window is hidden or window is scrolled down
 const visibilityState = useDocumentVisibility()
-watch(visibilityState, () => {
-  if (visibilityState.value === "hidden")
+const scrollState = useWindowScroll()
+const updatePaused = computed(() => {
+  const ypos = scrollState.y.value;
+  const hidden = visibilityState.value === "hidden";
+  return ypos > 256 || hidden
+})
+
+watch(updatePaused, () => {
+  if (updatePaused.value) {
+    console.debug("Updates paused")
     stopUpdates()
-  else
+  } else {
+    console.debug("Updates resumed")
     restartUpdates()
+  }
 })
 
 // Fix Masonry layout on updates, config changes or window resize events
