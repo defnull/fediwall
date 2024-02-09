@@ -283,7 +283,7 @@ const onSubmit = () => {
                 </div>
 
                 <div class="mb-3">
-                  <h6>Post content:</h6>
+                  <h6>Text and media:</h6>
                   <div class="ms-5">
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" id="edit-text" v-model="formMediaText">
@@ -294,7 +294,7 @@ const onSubmit = () => {
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" id="edit-media" v-model="formMediaMedia">
                       <label class="form-check-label" for="edit-media">
-                        Show attached media
+                        Show images or videos
                       </label>
                     </div>
                     <div class="form-check ms-3">
