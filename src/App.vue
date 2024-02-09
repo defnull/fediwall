@@ -16,7 +16,6 @@ const config = ref<Config>();
 const allPosts = ref<Array<Post>>([])
 const pinned = ref<Array<string>>([])
 const hidden = ref<Array<string>>([])
-const banned = ref<Array<string>>([])
 const updateInProgress = ref(false)
 
 var updateIntervalHandle: number;
@@ -148,11 +147,11 @@ const filteredPosts = computed(() => {
   var posts: Array<Post> = JSON.parse(JSON.stringify(allPosts.value))
   const pinnedLocal = [...pinned.value]
   const hiddenLocal = [...hidden.value]
-  const bannedLocal = [...banned.value]
 
-  // Filter hidden posts or banned authors
-  posts = posts.filter((p) => !hiddenLocal.includes(p.id))
-  posts = posts.filter((p) => !p.author?.url || !bannedLocal.includes(p.author.url))
+  // Filter hidden posts, authors or domains
+  posts = posts.filter((p) => !hiddenLocal.some(hide => 
+    p.id == hide || p.author?.profile.endsWith(hide)
+  ))
 
   // Mark pinned posts
   posts.forEach(p => { p.pinned = pinnedLocal.includes(p.id) })
@@ -182,8 +181,13 @@ const hide = (id: string) => {
   toggle(hidden.value, id)
 }
 
-const hideAuthor = (url: string) => {
-  toggle(banned.value, url)
+const hideAuthor = (profile: string) => {
+  toggle(hidden.value, profile)
+}
+
+const hideDomain = (profile: string) => {
+  var domain = profile.split("@").pop()
+  toggle(hidden.value, "@" + domain)
 }
 
 const toggleTheme = () => {
@@ -227,9 +231,12 @@ const privacyLink = computed(() => {
                 <li><a class="dropdown-item" href="#" @click.prevent="pin(post.id)">{{ post.pinned ? "Unpin" : "Pin"
                 }}</a></li>
                 <li><a class="dropdown-item" href="#" @click.prevent="hide(post.id)">Hide Post</a></li>
-                <li v-if="post.author?.url"><a class="dropdown-item" href="#"
-                    @click.prevent="hideAuthor(post.author?.url)">Hide
+                <li v-if="post.author?.profile"><a class="dropdown-item" href="#"
+                    @click.prevent="hideAuthor(post.author?.profile)">Hide
                     Author</a></li>
+                <li v-if="post.author?.profile"><a class="dropdown-item" href="#"
+                    @click.prevent="hideDomain(post.author?.profile)">Hide
+                    Domain</a></li>
               </ul>
             </div>
           </template>
