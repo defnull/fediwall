@@ -94,8 +94,8 @@ export async function fetchPosts(cfg: Config): Promise<Post[]> {
                 for (const task of tasks) {
                     try {
                         (await task())
-                            .filter(status => filterStatus(cfg, status))
                             .map(status => fixLocalAcct(domain, status))
+                            .filter(status => filterStatus(cfg, status))
                             .map(status => statusToWallPost(cfg, status))
                             .forEach(addOrRepacePost)
                     } catch (err) {
@@ -200,6 +200,8 @@ const filterStatus = (cfg: Config, status: MastodonStatus) => {
     if (cfg.badWords.length) {
         const pattern = new RegExp(`\\b(${cfg.badWords.map(regexEscape).join("|")})\\b`, 'i');
         if (status.tags?.find((tag: any) => cfg.badWords.includes(tag.name))
+            || status.account.display_name.match(pattern)
+            || status.account.acct.match(pattern)
             || status.content.match(pattern)
             || status.spoiler_text?.match(pattern)
             || status.media_attachments?.find(media => media.description?.match(pattern)))
