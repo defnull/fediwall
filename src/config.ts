@@ -255,7 +255,7 @@ export function sanatizeConfig(config: any): Config {
     result.loadTrends = boolOr(config.loadTrends, fallback.loadTrends)
 
     result.languages = arrayUnique((Array.isArray(config.languages) ? [...config.languages] : [...fallback.languages]).filter(isLanguage));
-    result.badWords = arrayUnique((Array.isArray(config.badWords) ? [...config.badWords] : [...fallback.badWords]).filter(isTag));
+    result.badWords = arrayUnique((Array.isArray(config.badWords) ? [...config.badWords] : [...fallback.badWords]));
     result.hideSensitive = boolOr(config.hideSensitive, fallback.hideSensitive)
     result.hideBoosts = boolOr(config.hideBoosts, fallback.hideBoosts)
     result.hideBots = boolOr(config.hideBots, fallback.hideBots)

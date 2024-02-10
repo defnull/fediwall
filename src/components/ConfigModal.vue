@@ -32,9 +32,10 @@ const formTags = computed({
   set: (value) => config.value.tags = arrayUnique([...(value || "").matchAll(tagPattern)].map(m => m[1])),
 });
 
+const badwordPattern = /([^, ]+)/igu
 const formBadWords = computed({
   get: () => config.value.badWords.join(" "),
-  set: (value) => config.value.badWords = arrayUnique([...(value || "").matchAll(tagPattern)].map(m => m[1])),
+  set: (value) => config.value.badWords = arrayUnique([...(value || "").matchAll(badwordPattern)].map(m => m[1])),
 });
 
 const accountPattern = /\b([a-z0-9_]+)(@([a-z0-9.-]+\.[a-z]{2,}))?\b/ig;
@@ -239,7 +240,7 @@ const onSubmit = () => {
                   <label for="edit-server" class="form-label">Filter bad words:</label>
                   <div class="ms-5">
                     <input type="text" class="form-control" id="edit-server" v-model.lazy="formBadWords">
-                    <div class="form-text">Hide posts containing certain words or hashtags. Only exact matches are
+                    <div class="form-text">Hide posts containing certain words, domains or hashtags. Only full word matches are
                       filtered.</div>
                   </div>
                 </div>
