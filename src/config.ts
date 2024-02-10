@@ -247,8 +247,8 @@ export function sanatizeConfig(config: any): Config {
     const result: Partial<Config> = {}
 
     result.servers = arrayUnique((Array.isArray(config.servers) ? [...config.servers] : [...fallback.servers]).filter(isServer));
-    result.tags = arrayUnique((Array.isArray(config.tags) ? [...config.tags] : [...fallback.tags]).map(stripTag).filter(isTag).sort() as string[]);
-    result.accounts = arrayUnique((Array.isArray(config.accounts) ? [...config.accounts] : [...fallback.accounts]).filter(isAccount).sort());
+    result.tags = arrayUnique((Array.isArray(config.tags) ? [...config.tags] : [...fallback.tags]).map(stripTag).filter(isTag) as string[]);
+    result.accounts = arrayUnique((Array.isArray(config.accounts) ? [...config.accounts] : [...fallback.accounts]).filter(isAccount));
 
     result.loadFederated = boolOr(config.loadFederated, fallback.loadFederated)
     result.loadPublic = boolOr(config.loadPublic, fallback.loadPublic)
