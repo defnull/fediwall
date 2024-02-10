@@ -30,7 +30,7 @@ export type Post = {
     id: string;
     url: string;
     content: string;
-    date: string;
+    date: Date;
 
     author?: {
         name: string;

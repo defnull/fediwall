@@ -144,7 +144,7 @@ async function updateWall() {
  */
 const filteredPosts = computed(() => {
   // Copy to make sure those are detected as a reactive dependencies
-  var posts: Array<Post> = JSON.parse(JSON.stringify(allPosts.value))
+  var posts: Array<Post> = [... allPosts.value]
   const pinnedLocal = [...pinned.value]
   const hiddenLocal = [...hidden.value]
 
@@ -160,11 +160,10 @@ const filteredPosts = computed(() => {
   posts = posts.sort((a, b) => {
     const aPinned = a.pinned ? 1 : 0
     const bPinned = b.pinned ? 1 : 0
-    return bPinned - aPinned || new Date(b.date).getTime() - new Date(a.date).getTime()
+    return bPinned - aPinned || b.date.getTime() - a.date.getTime()
   })
   return posts
 })
-
 
 function toggle<T>(array: T[], value: T) {
   if (array.includes(value))

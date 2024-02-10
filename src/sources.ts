@@ -218,7 +218,7 @@ const filterStatus = (cfg: Config, status: MastodonStatus) => {
  * Convert a mastdon status object to a Post.
  */
 const statusToWallPost = (cfg: Config, status: MastodonStatus): Post => {
-    const date = status.created_at
+    const date = new Date(status.created_at)
 
     if (status.reblog)
         status = status.reblog

@@ -29,7 +29,7 @@ export function deepClone(obj: any) {
  * a string or a new DOM node. Can be used to replace emojis with images or
  * URLs with links.
  * 
- * The root node is modifed in-place and then returned.
+ * The root node is modifed in-place and also returned.
  */
 export function replaceInText(root: Node, pattern: RegExp, replace: (m: RegExpMatchArray) => string | Node) {
     const walk = (node: Node) => {
