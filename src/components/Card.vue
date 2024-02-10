@@ -51,7 +51,7 @@ const onMediaLoad = inject('fixLayout', () => undefined)
           </video>
         </div>
         <p v-if="config.showText" class="card-text" v-dompurify-html="post.content"></p>
-        <p class="card-text text-end text-break"><a :href="post.url" target="_blank" alt="${post.date}"
+        <p class="card-text text-end text-break"><a :href="post.url" target="_blank" :title="post.date"
             class="text-decoration-none text-muted"><small>{{ timeAgo }}</small></a></p>
       </div>
     </div>
