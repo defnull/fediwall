@@ -1,6 +1,7 @@
 import type { Config, MastodonAccount, MastodonStatus, Post, PostMedia } from "@/types";
 import { regexEscape } from "@/utils";
 import { replaceInText } from '@/utils'
+import type { faTags } from "@fortawesome/free-solid-svg-icons";
 import DOMPurify from 'dompurify'
 
 /**
@@ -199,12 +200,12 @@ const filterStatus = (cfg: Config, status: MastodonStatus) => {
     if (cfg.hideBots && status.account?.bot) return false;
     if (cfg.badWords.length) {
         const pattern = new RegExp(`\\b(${cfg.badWords.map(regexEscape).join("|")})\\b`, 'i');
-        if (status.tags?.find((tag: any) => cfg.badWords.includes(tag.name))
-            || status.account.display_name.match(pattern)
-            || status.account.acct.match(pattern)
+        if (status.account?.display_name?.match(pattern)
+            || status.account?.acct?.match(pattern)
             || status.content.match(pattern)
             || status.spoiler_text?.match(pattern)
-            || status.media_attachments?.find(media => media.description?.match(pattern)))
+            || status.tags?.some(tag => tag.name?.match(pattern))
+            || status.media_attachments?.some(media => media.description?.match(pattern)))
             return false;
     }
 
