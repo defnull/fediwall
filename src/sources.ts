@@ -5,22 +5,32 @@ import type { faTags } from "@fortawesome/free-solid-svg-icons";
 import DOMPurify from 'dompurify'
 
 /**
- * Fetch unique posts from all sources (curently only Mastodon is implemented)
+ * Fetch unique posts from all sources (currently only Mastodon is implemented)
  */
-export async function fetchPosts(cfg: Config): Promise<Post[]> {
+export type Progress = {
+    total: number
+    started: number
+    finished: number
+    errors: Error[]
+}
+
+export async function fetchPosts(cfg: Config, onProgress: (progress: Progress) => void): Promise<Post[]> {
+
     type Task = () => Promise<MastodonStatus[]>;
+    let progress: Progress = {total: 0, started: 0, finished: 0, errors: []}
 
     // Group tasks by domain (see below)
     const domainTasks: Record<string, Array<Task>> = {}
     const addTask = (domain: string, task: Task) => {
+        progress.total += 1;
         (domainTasks[domain] ??= []).push(task)
     }
 
     // Load tags from all servers
     for (const domain of cfg.servers) {
         const query: Record<string, any> = { limit: cfg.limit }
-        if(cfg.badWords.length) query.none = cfg.badWords.join(",")
-        if(!cfg.showText) query.only_media = "True"
+        if (cfg.badWords.length) query.none = cfg.badWords.join(",")
+        if (!cfg.showText) query.only_media = "True"
         for (const tag of cfg.tags) {
             addTask(domain, async () => {
                 return await fetchJson(domain, `api/v1/timelines/tag/${encodeURIComponent(tag)}`, query)
@@ -93,14 +103,19 @@ export async function fetchPosts(cfg: Config): Promise<Post[]> {
         .map(([domain, tasks]) => {
             return async () => {
                 for (const task of tasks) {
+                    progress.started += 1;
                     try {
                         (await task())
                             .map(status => fixLocalAcct(domain, status))
                             .filter(status => filterStatus(cfg, status))
                             .map(status => statusToWallPost(cfg, status))
                             .forEach(addOrRepacePost)
-                    } catch (err) {
-                        console.warn(`Update task failed for domain ${domain}`, err)
+                    } catch (err: any) {
+                        let error = err instanceof Error ? err : new Error(err?.toString())
+                        progress.errors.push(error)
+                    } finally {
+                        progress.finished += 1
+                        onProgress(progress)
                     }
                 }
             }
@@ -145,34 +160,45 @@ async function fetchJson(domain: string, path: string, query?: Record<string, an
         const pairs = Object.entries(query).map(([key, value]) => [key, value.toString()])
         url += "?" + new URLSearchParams(pairs).toString()
     }
-    let rs = await fetch(url)
 
-    // Auto-retry rate limit errors
-    let errCount = 0
-    while (!rs.ok) {
-        if (errCount++ > 3)
-            break // Do not retry anymore
+    let rs: Response;
+    let json: any;
 
-        if (rs.headers.get("X-RateLimit-Remaining") === "0") {
-            const resetTime = new Date(rs.headers.get("X-RateLimit-Reset") || (new Date().getTime() + 10000)).getTime();
-            const referenceTime = new Date(rs.headers.get("Date") || new Date()).getTime();
-            const sleep = Math.max(0, resetTime - referenceTime) + 1000 // 1 second leeway
-            await new Promise(resolve => setTimeout(resolve, sleep));
-        } else {
-            break // Do not retry
-        }
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Retry
+    try {
         rs = await fetch(url)
+
+        // Auto-retry rate limit errors
+        let errCount = 0
+        while (!rs.ok) {
+            if (errCount++ > 3)
+                break // Do not retry anymore
+
+            if (rs.headers.get("X-RateLimit-Remaining") === "0") {
+                const resetTime = new Date(rs.headers.get("X-RateLimit-Reset") || (new Date().getTime() + 10000)).getTime();
+                const referenceTime = new Date(rs.headers.get("Date") || new Date()).getTime();
+                const sleep = Math.max(0, resetTime - referenceTime) + 1000 // 1 second leeway
+                await new Promise(resolve => setTimeout(resolve, sleep));
+            } else {
+                break // Do not retry
+            }
+
+            // Retry
+            rs = await fetch(url)
+        }
+        json = await rs.json()
+    } catch (e: any) {
+        throw new Error(`Failed to fetch ${url} (${e.message || e})`);
     }
 
-    const json = await rs.json()
-    if (json.error) {
-        console.warn(`Fetch error: ${rs.status} ${JSON.stringify(json)}`)
-        const err = new Error(json.error);
+    if (!rs.ok || json.error) {
+        const err = new Error(`Failed to fetch ${url} (${rs.status}: ${json.error || "Unknown reason"})`);
         (err as any).status = rs.status;
+        (err as any).body = json;
         throw err;
     }
+
     return json
 }
 
@@ -218,7 +244,7 @@ const filterStatus = (cfg: Config, status: MastodonStatus) => {
 }
 
 /**
- * Convert a mastdon status object to a Post.
+ * Convert a mastodon status object to a Post.
  */
 const statusToWallPost = (cfg: Config, status: MastodonStatus): Post => {
     const date = new Date(status.created_at)

@@ -27,8 +27,8 @@ import VueDOMPurifyHTML from 'vue-dompurify-html';
 // Register fontawesome icons
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faGear, faSpinner } from '@fortawesome/free-solid-svg-icons'
-library.add(faGear, faSpinner)
+import { faGear, faSpinner, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
+library.add(faGear, faSpinner, faTriangleExclamation)
 
 import App from '@/App.vue'
 const app = createApp(App)

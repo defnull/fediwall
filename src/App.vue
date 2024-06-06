@@ -10,6 +10,7 @@ import { fetchPosts } from '@/sources'
 import Card from './components/Card.vue';
 import ConfigModal from './components/ConfigModal.vue';
 import InfoBar from './components/InfoBar.vue';
+import { arrayUnique } from './utils';
 
 const config = ref<Config>();
 
@@ -17,6 +18,9 @@ const allPosts = ref<Array<Post>>([])
 const pinned = ref<Array<string>>([])
 const hidden = ref<Array<string>>([])
 const updateInProgress = ref(false)
+
+const statusText = ref<string | undefined>("Initializing ...")
+const statusIsError = ref(false)
 
 var updateIntervalHandle: number;
 var lastUpdate = 0;
@@ -127,15 +131,35 @@ async function updateWall() {
   updateInProgress.value = true
 
   try {
-    allPosts.value = await fetchPosts(cfg)
+    allPosts.value = await fetchPosts(cfg, progress => {
+      if (progress.errors.length) {
+        setStatus(progress.errors.slice(-1)[0].message, true)
+      } else if (progress.finished < progress.total) {
+        setStatus(`Updating [${progress.finished}/${progress.total}] ...`)
+      } else {
+        setStatus(false)
+      }
+    })
+
     console.debug("Update completed")
   } catch (e) {
-    console.warn("Update failed", e)
+    setStatus(`Update failed: ${e}`)
   } finally {
     lastUpdate = Date.now()
     updateInProgress.value = false;
   }
 
+}
+
+
+function setStatus(text: string | false, isError?: boolean) {
+  if (text === false) {
+    statusText.value = undefined
+    statusIsError.value = false
+  } else {
+    statusText.value = text
+    statusIsError.value = isError === true
+  }
 }
 
 /**
@@ -144,12 +168,12 @@ async function updateWall() {
  */
 const filteredPosts = computed(() => {
   // Copy to make sure those are detected as a reactive dependencies
-  var posts: Array<Post> = [... allPosts.value]
+  var posts: Array<Post> = [...allPosts.value]
   const pinnedLocal = [...pinned.value]
   const hiddenLocal = [...hidden.value]
 
   // Filter hidden posts, authors or domains
-  posts = posts.filter((p) => !hiddenLocal.some(hide => 
+  posts = posts.filter((p) => !hiddenLocal.some(hide =>
     p.id == hide || p.author?.profile.endsWith(hide)
   ))
 
@@ -186,7 +210,8 @@ const hideAuthor = (profile: string) => {
 
 const hideDomain = (profile: string) => {
   var domain = profile.split("@").pop()
-  toggle(hidden.value, "@" + domain)
+  if (domain)
+    toggle(hidden.value, "@" + domain)
 }
 
 const toggleTheme = () => {
@@ -204,8 +229,7 @@ const privacyLink = computed(() => {
 
 <template>
   <div id="page">
-    <icon v-show="updateInProgress" icon="spinner" spin
-      class="position-fixed bottom-0 start-0 m-1 opacity-25 text-muted" />
+
     <header v-if="config?.showInfobar" class="secret-hover" style="cursor: context-menu" data-bs-toggle="modal"
       data-bs-target="#configModal" title="Click to edit wall settings">
       <span class="text-muted float-end secret">
@@ -214,11 +238,16 @@ const privacyLink = computed(() => {
       <InfoBar :config="config" />
     </header>
 
+    <aside id="status-row" class="position-absolute opacity-25">
+      <Transition>
+        <icon v-if="statusIsError" icon="triangle-exclamation" class="mx-1" :title="statusText" />
+        <icon v-else-if="updateInProgress" icon="spinner" spin class="mx-1" />
+      </Transition>
+    </aside>
+
     <main>
-      <div v-if="config === undefined">Initializing ...</div>
-      <div v-else-if="filteredPosts.length === 0 && updateInProgress">Loading first posts ...</div>
-      <div v-else-if="filteredPosts.length === 0">Nothing there yet ...</div>
-      <div v-else v-masonry transition-duration="1s" item-selector=".wall-item" percent-position="true" id="wall">
+      <div v-if="config && filteredPosts.length > 0" v-masonry transition-duration="1s" item-selector=".wall-item"
+        percent-position="true" id="wall">
         <Card v-masonry-tile class="wall-item secret-hover" v-for="post in filteredPosts" :key="post.id" :post="post"
           :config="config">
 
@@ -228,7 +257,7 @@ const privacyLink = computed(() => {
                 aria-expanded="false">...</button>
               <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="#" @click.prevent="pin(post.id)">{{ post.pinned ? "Unpin" : "Pin"
-                }}</a></li>
+                    }}</a></li>
                 <li><a class="dropdown-item" href="#" @click.prevent="hide(post.id)">Hide Post</a></li>
                 <li v-if="post.author?.profile"><a class="dropdown-item" href="#"
                     @click.prevent="hideAuthor(post.author?.profile)">Hide
@@ -247,8 +276,11 @@ const privacyLink = computed(() => {
     <ConfigModal v-if="config" v-model="config" id="configModal" />
 
     <footer>
+      <aside class="opacity-50 text-center">
+        Status: {{ statusText || "OK" }}
+      </aside>
       <button class="btn btn-link text-muted" @click="toggleTheme(); false">[{{ actualTheme == "dark" ? "Light" : "Dark"
-      }} mode]</button>
+        }} mode]</button>
       <button class="btn btn-link text-muted" data-bs-toggle="modal" data-bs-target="#configModal">[Customize]</button>
       <div>
         <a href="https://github.com/defnull/fediwall" target="_blank" class="mx-1 text-muted">Fediwall <span
@@ -362,5 +394,15 @@ body {
   .wall-item {
     width: 100%;
   }
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
 }
 </style>
