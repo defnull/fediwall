@@ -65,11 +65,11 @@ onUpdated(fixLayout)
 watch([useWindowSize().width, config, allPosts], fixLayout, { deep: true })
 
 // Watch for a theme changes
-const isDarkPrefered = usePreferredDark()
+const isDarkPreferred = usePreferredDark()
 const actualTheme = computed(() => {
   var theme = config.value?.theme
   if (!theme || theme === "auto")
-    theme = isDarkPrefered.value ? "dark" : "light"
+    theme = isDarkPreferred.value ? "dark" : "light"
   return theme
 })
 watch(actualTheme, () => {

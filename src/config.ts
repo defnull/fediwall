@@ -180,7 +180,7 @@ export function fromQuery(query: string): Config {
     }
 
     // Clean, fix and return a valid config
-    return sanatizeConfig(config);
+    return sanitizeConfig(config);
 }
 
 export function toQuery(config: Config, userConfig?: string): string {
@@ -223,7 +223,7 @@ export function isLanguage(lang: string) {
     return isString(lang) && lang.match(/^[a-z]{2}$/i)
 }
 
-export function sanatizeConfig(config: any): Config {
+export function sanitizeConfig(config: any): Config {
 
     const boolOr = (value: any, fallback: boolean) => {
         if (typeof value == "boolean") return value;
@@ -284,7 +284,7 @@ export async function loadConfig() {
         try {
             const rs = await fetch(url, { cache: "reload", })
             if (!rs.ok) throw new Error(`HTTP error! Status: ${rs.status}`);
-            siteConfig = sanatizeConfig(await rs.json() || {});
+            siteConfig = sanitizeConfig(await rs.json() || {});
             siteConfigSource = url
         } catch (e) {
             console.warn(`Failed to load (or parse) [${url}], falling back to defaults.`)
@@ -297,7 +297,7 @@ export async function loadConfig() {
     if (!siteConfig && siteConfigUrl)
         await loadJson(siteConfigUrl)
     if (!siteConfig)
-        siteConfig = sanatizeConfig(deepClone(fallbackConfig))
+        siteConfig = sanitizeConfig(deepClone(fallbackConfig))
 
     return fromQuery(window.location.search)
 }

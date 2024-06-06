@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { sanatizeConfig, isServer, isLanguage, toQuery } from '@/config';
+import { sanitizeConfig, isServer, isLanguage, toQuery } from '@/config';
 import { computed, ref } from 'vue';
 import { arrayUnique } from '@/utils';
 import { type Config } from '@/types';
@@ -14,7 +14,7 @@ const props = defineProps<{
 
 const config = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', sanatizeConfig(value)),
+  set: (value) => emit('update:modelValue', sanitizeConfig(value)),
 });
 
 const formServers = computed({
@@ -251,7 +251,7 @@ const onSubmit = () => {
                     <input type="text" class="form-control" id="edit-server" placeholder="all languages"
                       v-model.lazy="formLang">
                     <div class="form-text">List of <a href="https://en.wikipedia.org/wiki/ISO_639-1"
-                        tyrget="_blanlk">two-letter language codes</a> to allow. Leave blank to allow all languages.</div>
+                        target="_blank">two-letter language codes</a> to allow. Leave blank to allow all languages.</div>
                   </div>
                 </div>
 

@@ -29,11 +29,11 @@ export function deepClone(obj: any) {
 
 
 /**
- * Find all text nodes and replace each occuences of a pattern with either
+ * Find all text nodes and replace each occurrences of a pattern with either
  * a string or a new DOM node. Can be used to replace emojis with images or
  * URLs with links.
  * 
- * The root node is modifed in-place and also returned.
+ * The root node is modified in-place and also returned.
  */
 export function replaceInText(root: Node, pattern: RegExp, replace: (m: RegExpMatchArray) => string | Node) {
     const walk = (node: Node) => {

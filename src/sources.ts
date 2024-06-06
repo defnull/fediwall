@@ -82,7 +82,7 @@ export async function fetchPosts(cfg: Config, onProgress: (progress: Progress) =
 
     // Collect results
     const posts: Post[] = []
-    const addOrRepacePost = (post: Post) => {
+    const addOrReplacePost = (post: Post) => {
         const i = posts.findIndex(p => p.id === post.id)
         if (i >= 0)
             posts[i] = post
@@ -108,7 +108,7 @@ export async function fetchPosts(cfg: Config, onProgress: (progress: Progress) =
                             .map(status => fixLocalAcct(domain, status))
                             .filter(status => filterStatus(cfg, status))
                             .map(status => statusToWallPost(cfg, status))
-                            .forEach(addOrRepacePost)
+                            .forEach(addOrReplacePost)
                     } catch (err: any) {
                         let error = err instanceof Error ? err : new Error(err?.toString())
                         progress.errors.push(error)
