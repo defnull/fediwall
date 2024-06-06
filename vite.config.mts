@@ -3,13 +3,13 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import viteCompression from "vite-plugin-compression";
-import { gitDescribeSync } from "git-describe";
+import gitDescribe from "git-describe";
 import viteLegacy from "@vitejs/plugin-legacy";
 
 let version;
 
 try {
-    const gitInfo = gitDescribeSync();
+    const gitInfo = gitDescribe.gitDescribeSync();
     if (gitInfo.tag) {
         version = `${gitInfo.tag}`;
         if (gitInfo.distance)
