@@ -251,10 +251,10 @@ function findMedia(status: MastodonStatus) {
         const preview = m.preview_url ?? undefined
         switch (m.type) {
             case "image":
-                return { type: "image", url, href:url, preview, alt }
+                return { type: "image", url, preview, alt }
             case "video":
             case "gifv":
-                return { type: "video", url, href:url, preview, alt }
+                return { type: "video", url, preview, alt }
             case "audio":
             case "unknown":
                 return
