@@ -45,10 +45,11 @@ export type Post = {
 };
 
 export type PostMedia = {
-    type: "image" | "video"
-    url: string,
-    preview: string
+    type: "image" | "video" | "card"
+    url: string
+    preview?: string
     alt?: string
+    size?: [number,number]
 }
 
 
@@ -67,6 +68,7 @@ export type MastodonStatus = {
     in_reply_to_id?: string | null;
     language?: string | null;
     media_attachments: Array<MastodonMediaAttachment>;
+    card?: MastodonCard,
     reblog?: MastodonStatus | null;
     sensitive: boolean;
     spoiler_text?: string | null;
@@ -113,4 +115,24 @@ export type MastodonMediaAttachment = {
     description?: string | null;
     preview_url: string;
     url: string;
+}
+
+export type MastodonCard = {
+    url: string;
+    title: string;
+    description: string;
+    language: string;
+    type: string;
+    author_name: string;
+    author_url: string;
+    provider_name: string;
+    provider_url: string;
+    html: string;
+    width: number;
+    height: number;
+    image: string;
+    image_description: string;
+    embed_url: string;
+    blurhash: string | null;
+    published_at?: any
 }

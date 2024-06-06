@@ -1,7 +1,6 @@
 import type { Config, MastodonAccount, MastodonStatus, Post, PostMedia } from "@/types";
-import { regexEscape } from "@/utils";
+import { notBlank, regexEscape } from "@/utils";
 import { replaceInText } from '@/utils'
-import type { faTags } from "@fortawesome/free-solid-svg-icons";
 import DOMPurify from 'dompurify'
 
 /**
@@ -236,11 +235,40 @@ const filterStatus = (cfg: Config, status: MastodonStatus) => {
     }
 
     // Skip posts that would show up empty
-    if (!cfg.showText && !status.media_attachments?.length) return false;
+    if (!cfg.showText && findMedia(status).length == 0) return false;
     if (!cfg.showMedia && !status.content.trim()) return false;
 
     // Accept anything else
     return true;
+}
+
+function findMedia(status: MastodonStatus) {
+    const media: PostMedia[] = []
+    
+    status.media_attachments?.map((m): PostMedia | undefined => {
+        const url = m.url;
+        const alt = m.description ?? undefined
+        const preview = m.preview_url ?? undefined
+        switch (m.type) {
+            case "image":
+                return { type: "image", url, href:url, preview, alt }
+            case "video":
+            case "gifv":
+                return { type: "video", url, href:url, preview, alt }
+            case "audio":
+            case "unknown":
+                return
+        }
+    }).filter(m=>!!m).forEach(m=>media.push(m))
+
+    // Fall back to preview card images if no media is attached (e.g. for peertube posts)
+    if(media.length == 0 && status.card) {
+        const card = status.card
+        if(notBlank(card.image) && notBlank(card.url))
+            media.push({type:"card", url: card.url, preview:card.image, alt: status.card.description})    
+    }
+
+    return media
 }
 
 /**
@@ -282,18 +310,7 @@ const statusToWallPost = (cfg: Config, status: MastodonStatus): Post => {
     const profile = status.account.acct
     const content = replaceEmojis(status.content, status.emojis)
 
-    const media = status.media_attachments?.map((m): PostMedia | undefined => {
-        switch (m.type) {
-            case "image":
-                return { type: "image", url: m.url, preview: m.preview_url, alt: m.description ?? undefined }
-            case "video":
-            case "gifv":
-                return { type: "video", url: m.url, preview: m.preview_url, alt: m.description ?? undefined }
-            case "audio":
-            case "unknown":
-                return
-        }
-    }).filter((m): m is PostMedia => m !== undefined)
+    const media = findMedia(status)
 
     return {
         id: status.uri,

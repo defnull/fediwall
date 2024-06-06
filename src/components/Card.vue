@@ -43,12 +43,15 @@ const onMediaLoad = inject('fixLayout', () => undefined)
         <slot name="topleft"></slot>
       </div>
       <div class="card-body">
-        <div v-if="config.showMedia" class="wall-media mb-3" ref="mediaElement">
-          <img v-if="media?.type === 'image'" :src="media.url" :alt="media.alt" :title="media.alt" @load="onMediaLoad">
-          <video v-else-if="media?.type === 'video'" muted loop :autoplay="playVideo"
+        <div v-if="config.showMedia && media" class="wall-media mb-3" ref="mediaElement">
+          <img v-if="media.type === 'image'" :src="media.url" :alt="media.alt" :title="media.alt" @load="onMediaLoad">
+          <video v-else-if="media.type === 'video'" muted loop :autoplay="playVideo"
             :poster="media.preview" :alt="media.alt" :title="media.alt" @loadedmetadata="onMediaLoad">
             <source v-if="playVideo" :src="media.url">
           </video>
+          <a v-else-if="media.type==='card'" :href="media.url" target="_blank">
+            <img :src="media.preview" :alt="media.alt" :title="media.alt" @load="onMediaLoad">
+          </a>
         </div>
         <p v-if="config.showText" class="card-text" v-dompurify-html="post.content"></p>
         <p class="card-text text-end text-break"><a :href="post.url" target="_blank" :title="post.date.toLocaleString()"

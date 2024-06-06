@@ -9,6 +9,10 @@ export function isString(test: any) {
     return typeof test === 'string' || test instanceof String
 }
 
+export function notBlank(test?: string) {
+    return test && test.trim().length > 0
+}
+
 export function arrayUnique<T>(array: T[]) {
     return array.filter((v, i, a) => a.indexOf(v) === i)
 }
