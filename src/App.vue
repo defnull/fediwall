@@ -135,7 +135,7 @@ async function updateWall() {
       if (progress.errors.length) {
         setStatus(progress.errors.slice(-1)[0].message, true)
       } else if (progress.finished < progress.total) {
-        setStatus(`Updating [${progress.finished}/${progress.total}] ...`)
+        setStatus(`Loading [${progress.finished}/${progress.total}] sources ...`)
       } else {
         setStatus(false)
       }
