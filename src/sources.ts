@@ -11,12 +11,13 @@ export type Progress = {
     started: number
     finished: number
     errors: Error[]
+    posts: Post[]
 }
 
 export async function fetchPosts(cfg: Config, onProgress: (progress: Progress) => void): Promise<Post[]> {
 
     type Task = () => Promise<MastodonStatus[]>;
-    let progress: Progress = {total: 0, started: 0, finished: 0, errors: []}
+    let progress: Progress = {total: 0, started: 0, finished: 0, errors: [], posts: []}
 
     // Group tasks by domain (see below)
     const domainTasks: Record<string, Array<Task>> = {}
@@ -81,8 +82,8 @@ export async function fetchPosts(cfg: Config, onProgress: (progress: Progress) =
     }
 
     // Collect results
-    const posts: Post[] = []
     const addOrReplacePost = (post: Post) => {
+        const posts = progress.posts;
         const i = posts.findIndex(p => p.id === post.id)
         if (i >= 0)
             posts[i] = post
@@ -126,7 +127,7 @@ export async function fetchPosts(cfg: Config, onProgress: (progress: Progress) =
     await Promise.allSettled(groupedTasks.map(task => task()))
 
     // Done. Return collected posts
-    return posts
+    return progress.posts
 }
 
 /**
