@@ -39,7 +39,7 @@ function sep(index: number, length: number, sep: string, lastsep: string) {
             <template v-for="(t, index) in tags" :key="index">
                 <code>#{{ t }}</code>{{ sep(index, tags.length, ", ", tagsHidden ? ", " : " or ") }}
             </template>
-            <span v-if="tagsHidden"> and more</span>
+            <span v-if="tagsHidden"> and {{tagsHidden}} more</span>
         </template>
         <template v-if="accounts.length">
             <template v-if="tags.length"> as well as posts </template>
@@ -47,7 +47,7 @@ function sep(index: number, length: number, sep: string, lastsep: string) {
             <template v-for="(acc, index) in accounts" :key="index">
                 <code>@{{ acc }}</code>{{ sep(index, accounts.length, ", ", accountsHidden ? ", " : " or ") }}
             </template>
-            <span v-if="accountsHidden"> and more</span>
+            <span v-if="accountsHidden"> and {{accountsHidden}} more</span>
         </template>
     </div>
 </template>
