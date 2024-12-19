@@ -85,10 +85,14 @@ export async function fetchPosts(cfg: Config, onProgress: (progress: Progress) =
     const addOrReplacePost = (post: Post) => {
         const posts = progress.posts;
         const i = posts.findIndex(p => p.id === post.id)
-        if (i >= 0)
-            posts[i] = post
-        else
+        if(i < 0) {
+            // Add new posts to the end of the list
             posts.unshift(post)
+        } else if (posts[i].date < post.date) {
+            // If there are two posts with the same ID, keep the more recent one.
+            // This is so that posts appear more recent if they are boosted.
+            posts[i] = post
+        }
     }
 
     const fixLocalAcct = (domain: string, status: MastodonStatus): MastodonStatus => {
