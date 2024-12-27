@@ -1,5 +1,5 @@
 import type { Config, MastodonAccount, MastodonStatus, Post, PostMedia } from "@/types";
-import { notBlank, regexEscape } from "@/utils";
+import { notBlank, regexEscape, sleep } from "@/utils";
 import { replaceInText } from '@/utils'
 import DOMPurify from 'dompurify'
 
