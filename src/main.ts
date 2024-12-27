@@ -1,5 +1,5 @@
 /**
-    Copyright (C) 2023  Marcel Hellkamp
+    Copyright (C) 2024  Marcel Hellkamp
     Copyright (C) 2023  Gesellschaft für wissenschaftliche Datenverarbeitung mbH Göttingen
 
     This program is free software: you can redistribute it and/or modify

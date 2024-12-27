@@ -102,11 +102,13 @@ export async function fetchPosts(cfg: Config, onProgress: (progress: Progress) =
     }
 
     // Be nice and not overwhelm servers with parallel requests.
-    // Run tasks for the same domain in sequence instead.
+    // Run tasks for the same domain in sequence instead, and wait between
+    // requests for a small random amount of time.
     const groupedTasks = Object.entries(domainTasks)
         .map(([domain, tasks]) => {
             return async () => {
-                for (const task of tasks) {
+                for (const [taskIndex, task] of tasks.entries()) {
+                    await sleep(Math.min(Math.random() * 100 * taskIndex, 500))
                     progress.started += 1;
                     try {
                         (await task())
@@ -167,8 +169,6 @@ async function fetchJson(domain: string, path: string, query?: Record<string, an
 
     let rs: Response;
     let json: any;
-
-    await new Promise(resolve => setTimeout(resolve, 1000));
 
     try {
         rs = await fetch(url)
