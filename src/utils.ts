@@ -27,8 +27,8 @@ export function deepClone(obj: any) {
     return JSON.parse(JSON.stringify(obj))
 }
 
-export function sleep(ms:number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+export async function sleep(ms:number) {
+    await new Promise(resolve => setTimeout(resolve, Math.max(0, ms)));
 }
 
 

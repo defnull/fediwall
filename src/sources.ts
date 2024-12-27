@@ -108,7 +108,7 @@ export async function fetchPosts(cfg: Config, onProgress: (progress: Progress) =
         .map(([domain, tasks]) => {
             return async () => {
                 for (const [taskIndex, task] of tasks.entries()) {
-                    await sleep(Math.min(Math.random() * 100 * taskIndex, 500))
+                    await sleep(Math.min(500, Math.random() * 100 * taskIndex))
                     progress.started += 1;
                     try {
                         (await task())
@@ -182,8 +182,7 @@ async function fetchJson(domain: string, path: string, query?: Record<string, an
             if (rs.headers.get("X-RateLimit-Remaining") === "0") {
                 const resetTime = new Date(rs.headers.get("X-RateLimit-Reset") || (new Date().getTime() + 10000)).getTime();
                 const referenceTime = new Date(rs.headers.get("Date") || new Date()).getTime();
-                const sleep = Math.max(0, resetTime - referenceTime) + 1000 // 1 second leeway
-                await new Promise(resolve => setTimeout(resolve, sleep));
+                await sleep(resetTime - referenceTime + 1000) // 1 second leeway
             } else {
                 break // Do not retry
             }
