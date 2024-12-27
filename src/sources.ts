@@ -44,6 +44,7 @@ export async function fetchPosts(cfg: Config, onProgress: (progress: Progress) =
         const [user, domain] = account.split('@', 2)
         const domains = domain ? [domain] : [...cfg.servers]
         for (const domain of domains) {
+            if(domain === "fedi.buzz") continue
             addTask(domain, async () => {
                 const localUser = await getLocalUser(user, domain)
                 if (!localUser || !localUser.id) return [];
@@ -61,6 +62,7 @@ export async function fetchPosts(cfg: Config, onProgress: (progress: Progress) =
     // Load trends from all servers
     if (cfg.loadTrends) {
         for (const domain of cfg.servers) {
+            if(domain === "fedi.buzz") continue
             addTask(domain, async () => {
                 return await fetchJson(domain, "api/v1/trends/statuses", { limit: cfg.limit })
             })
@@ -71,6 +73,7 @@ export async function fetchPosts(cfg: Config, onProgress: (progress: Progress) =
     // or just federated posts.
     if (cfg.loadPublic || cfg.loadFederated) {
         for (const domain of cfg.servers) {
+            if(domain === "fedi.buzz") continue
             const query: Record<string, any> = { limit: cfg.limit }
             if (!cfg.loadPublic) query.remote = "True"
             if (!cfg.loadFederated) query.local = "True"
