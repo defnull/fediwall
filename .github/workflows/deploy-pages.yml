@@ -27,7 +27,7 @@ jobs:
       - name: Build
         run: npm run build -- --base=./
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: dist/
 
