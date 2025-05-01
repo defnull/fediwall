@@ -4,7 +4,7 @@ import { type Config } from '@/types';
 // Fallback configuration in case the site config fails to load or is missing required fields.
 // TODO: Maybe just fail in that case and not hard-code mastodon.social?
 export const fallbackConfig: Config = {
-    servers: ["mastodon.social"],
+    servers: ["mastodon.social", "fedi.buzz"],
     tags: ["foss", "cats", "dogs"],
     accounts: [],
 
