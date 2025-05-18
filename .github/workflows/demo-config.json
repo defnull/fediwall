@@ -1,5 +1,5 @@
 {
-    "servers": ["mastodon.social"],
+    "servers": ["mastodon.social", "fedi.buzz"],
     "tags": ["foss", "cats", "dogs", "fediwall"],
     "accounts": ["defnull@chaos.social"],
     "theme": "dark"
