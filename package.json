@@ -23,9 +23,9 @@
     "@fortawesome/vue-fontawesome": "^3.0.8",
     "@vueuse/core": "^10.10.0",
     "bootstrap": "^5.3.3",
+    "dompurify": "^3.1.5",
     "moment": "^2.30.1",
     "vue": "^3.4.27",
-    "dompurify": "^3.1.5",
     "vue-dompurify-html": "^5.0.1",
     "vue-masonry": "^0.16.0"
   },
@@ -35,7 +35,7 @@
     "@types/dompurify": "^3.0.5",
     "@types/node": "^20.14.2",
     "@typescript-eslint/eslint-plugin": "^7.12.0",
-    "@vitejs/plugin-legacy": "^5.4.1",
+    "@vitejs/plugin-legacy": "^6.1.1",
     "@vitejs/plugin-vue": "^5.0.5",
     "@vue/eslint-config-typescript": "^13.0.0",
     "@vue/tsconfig": "^0.5.1",
@@ -43,7 +43,7 @@
     "git-describe": "^4.1.1",
     "terser": "^5.31.0",
     "typescript": "~5.4.5",
-    "vite": "^5.2.12",
+    "vite": "^6.3.5",
     "vite-plugin-compression": "^0.5.1",
     "vue-tsc": "^2.0.19"
   }
