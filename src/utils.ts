@@ -27,7 +27,7 @@ export function deepClone(obj: any) {
     return JSON.parse(JSON.stringify(obj))
 }
 
-export async function sleep(ms:number) {
+export async function sleep(ms: number) {
     await new Promise(resolve => setTimeout(resolve, Math.max(0, ms)));
 }
 
@@ -67,4 +67,14 @@ export function replaceInText(root: Node, pattern: RegExp, replace: (m: RegExpMa
 
     walk(root)
     return root;
+}
+
+export function whack(what:string, how_much: number) {
+    const rand = (scale:number) => (Math.random() * 2 - 1) * scale * how_much;
+    document
+        .querySelectorAll(what)
+        .forEach((node) => {
+            if(node instanceof HTMLElement)
+                node.style.transform = how_much > 0 ? `translate(${rand(4)}px, ${rand(4)}px) rotate(${rand(1)}deg)` : ""
+        })
 }

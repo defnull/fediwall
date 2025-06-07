@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, onMounted, onUpdated, provide, ref, watch } from 'vue';
-import { createFilterWrapper, debounceFilter, useDocumentVisibility, usePreferredDark, useWindowScroll, useWindowSize } from '@vueuse/core'
+import { createFilterWrapper, debounceFilter, onKeyStroke, useDocumentVisibility, usePreferredDark, useWindowScroll, useWindowSize } from '@vueuse/core'
 
 import { type Config, type Post } from '@/types';
 import { loadConfig } from '@/config';
@@ -10,7 +10,7 @@ import { fetchPosts } from '@/sources'
 import Card from './components/Card.vue';
 import ConfigModal from './components/ConfigModal.vue';
 import InfoBar from './components/InfoBar.vue';
-import { arrayUnique } from './utils';
+import { whack } from './utils';
 
 const config = ref<Config>();
 
@@ -82,7 +82,9 @@ watch(() => config.value?.title, () => document.title = config.value?.title || f
 // Watch for a update interval changes
 watch(() => config.value?.interval, () => restartUpdates())
 
-
+onKeyStroke(['w'], (e) => {
+  whack("#wall *", 1)
+})
 
 /**
  * Starts or restarts the update interval timer.
