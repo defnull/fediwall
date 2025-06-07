@@ -83,6 +83,11 @@ watch(() => config.value?.title, () => document.title = config.value?.title || f
 watch(() => config.value?.interval, () => restartUpdates())
 
 onKeyStroke(['w'], (e) => {
+  if(!(e.target instanceof HTMLElement)) return;
+  if(e.target instanceof HTMLInputElement ||
+     e.target instanceof HTMLTextAreaElement ||
+     e.target.isContentEditable)
+     return;
   whack("#wall *", 1)
 })
 
