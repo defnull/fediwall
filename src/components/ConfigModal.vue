@@ -38,7 +38,7 @@ const formBadWords = computed({
   set: (value) => config.value.badWords = arrayUnique([...(value || "").matchAll(badwordPattern)].map(m => m[1])),
 });
 
-const accountPattern = /\b([a-z0-9_]+)(@([a-z0-9.-]+\.[a-z]{2,}))?\b/ig;
+const accountPattern = /\b([a-z0-9_.-]+)(@([a-z0-9.-]+\.[a-z]{2,}))?\b/ig;
 const formAccounts = computed({
   get: () => config.value.accounts.map(t => "@" + t).join(" "),
   set: (value) => config.value.accounts = [...(value || "").matchAll(accountPattern)].map(m => m[0]),

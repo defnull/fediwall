@@ -212,7 +212,7 @@ export function stripTag(tag: string) {
 }
 
 export function isAccount(acc: string) {
-    return isString(acc) && acc.match(/^([a-z0-9_]+)(@([a-z0-9.-]+\.[a-z]{2,}))?$/i)
+    return isString(acc) && acc.match(/^([a-z0-9_.-]+)(@([a-z0-9.-]+\.[a-z]{2,}))?$/i)
 }
 
 export function isServer(server: string) {
