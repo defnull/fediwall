@@ -240,7 +240,7 @@ export function sanitizeConfig(config: any): Config {
         (config.servers ??= []).push(config.server);
     }
     if (isString(config.info))
-        config.showinfo = config.info == "top"
+        config.showInfobar ??= config.info == "top"
 
 
     const fallback = siteConfig || fallbackConfig;
@@ -266,7 +266,7 @@ export function sanitizeConfig(config: any): Config {
 
     result.title = config?.title || fallback.title
     result.theme = choice(themes, config.theme, fallback.theme)
-    result.showInfobar = boolOr(config.showInfo, fallback.showInfobar)
+    result.showInfobar = boolOr(config.showInfobar ?? config.showInfo, fallback.showInfobar)
     result.showText = boolOr(config.showText, fallback.showText)
     result.showMedia = boolOr(config.showMedia, fallback.showMedia)
     result.playVideos = boolOr(config.playVideos, fallback.playVideos)
